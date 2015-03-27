@@ -21,8 +21,8 @@
 import flask
 import lxml.html
 
-from .utils import *
-from .views import *
+from .utils import select, snake_case
+from .views import FeaturedFeedTriggerView
 
 
 app = flask.Flask(__name__)
@@ -74,6 +74,7 @@ class PictureOfTheDay(FeaturedFeedTriggerView):
     wiki = 'commons.wikimedia.org'
 
     def parse_entry(self, entry):
+        """Scrape each PotD entry for its description and URL."""
         item = super(PictureOfTheDay, self).parse_entry(entry)
         summary = lxml.html.fromstring(entry.summary)
         image_node = select(summary, 'a.image')
@@ -90,6 +91,7 @@ class ArticleOfTheDay(FeaturedFeedTriggerView):
     wiki = 'en.wikipedia.org'
 
     def parse_entry(self, entry):
+        """Scrape each AotD entry for its URL and title."""
         item = super(ArticleOfTheDay, self).parse_entry(entry)
         summary = lxml.html.fromstring(entry.summary)
         read_more = select(summary, 'p:first-of-type > a:last-of-type')
@@ -105,6 +107,8 @@ class WordOfTheDay(FeaturedFeedTriggerView):
     wiki = 'en.wiktionary.org'
 
     def parse_entry(self, entry):
+        """Scrape each WotD entry for the word, article URL, part of speech,
+        and definition."""
         item = super(WordOfTheDay, self).parse_entry(entry)
         summary = lxml.html.fromstring(entry.summary)
         div = summary.get_element_by_id('WOTD-rss-description')
@@ -114,7 +118,6 @@ class WordOfTheDay(FeaturedFeedTriggerView):
         item['part_of_speech'] = anchor.getparent().getnext().text_content()
         item['definition'] = div.text_content().strip()
         return item
-
 
 
 for view_class in (ArticleOfTheDay, PictureOfTheDay, WordOfTheDay):

@@ -21,11 +21,7 @@
 import datetime
 import re
 import time
-import urllib
-import urllib2
 import uuid
-
-import feedparser
 
 
 __all__ = ('select', 'snake_case', 'url_to_uuid5', 'utc_to_epoch',
@@ -42,6 +38,7 @@ def select(element, selector):
     """Syntactic sugar for element#cssselect that grabs the first match."""
     matches = element.cssselect(selector)
     return matches[0]
+
 
 def url_to_uuid5(url):
     """Generate a UUID5 for a given URL."""
