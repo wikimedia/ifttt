@@ -1,0 +1,12 @@
+*.egg
+*.egg-info
+*.kate-swp
+*.pyc
+*~
+.*.swp
+.pylintrc
+.svn
+.tox
+__pycache__
+venv
+ifttt.cfg

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+[ -f ../venv/bin/activate ] || /usr/bin/virtualenv ../venv
+source ../venv/bin/activate
+pip install -r requirements.txt
+[ -f ifttt.cfg ] || touch ifttt.cfg
