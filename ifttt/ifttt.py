@@ -77,9 +77,14 @@ class PictureOfTheDay(FeaturedFeedTriggerView):
         """Scrape each PotD entry for its description and URL."""
         item = super(PictureOfTheDay, self).parse_entry(entry)
         summary = lxml.html.fromstring(entry.summary)
-        image_node = select(summary, 'a.image')
+        image_node = select(summary, 'a.image img')
+        file_page_node = select(summary, 'a.image')
+        thumb_url = image_node.get('src')
+        width = image_node.get('width')  # 300px per MediaWiki:Ffeed-potd-page
+        image_url = thumb_url.rsplit('/' + width, 1)[0].replace('thumb/', '')
         desc_node = select(summary, '.description.en')
-        item['picture_url'] = image_node.get('href')
+        item['image_url'] = image_url
+        item['filepage_url'] = file_page_node.get('href')
         item['description'] = desc_node.text_content().strip()
         return item
 
