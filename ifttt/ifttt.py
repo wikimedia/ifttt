@@ -22,7 +22,7 @@ import flask
 import lxml.html
 
 from .utils import select, snake_case
-from .views import FeaturedFeedTriggerView
+from .views import FeaturedFeedTriggerView, APIQueryTriggerView, DailyAPIQueryTriggerView
 
 
 app = flask.Flask(__name__)
@@ -125,7 +125,67 @@ class WordOfTheDay(FeaturedFeedTriggerView):
         return item
 
 
-for view_class in (ArticleOfTheDay, PictureOfTheDay, WordOfTheDay):
+class WikipediaArticleRevisions(APIQueryTriggerView):
+
+    wiki = 'en.wikipedia.org'
+    query_params = {'action': 'query',
+                    'prop': 'revisions',
+                    'titles': None,
+                    'rvlimit': 50,
+                    'rvprop': 'ids|timestamp|user|size|comment',
+                    'format': 'json'}
+
+    def get_query(self):
+        self.query_params['titles'] = self.post_data['triggerFields']['title']
+        ret = super(WikipediaArticleRevisions, self).get_query()
+        return ret
+
+    def get_results(self):
+        api_resp = self.get_query()
+        page_id = api_resp['query']['pages'].keys()[0]
+        try:
+            revisions = api_resp['query']['pages'][page_id]['revisions']
+        except KeyError:
+            return []
+        return map(self.parse_result, revisions)
+
+    def parse_result(self, revision):
+        ret = {'date': revision['timestamp'],
+               'url': 'https://%s/w/index.php?diff=%s&oldid=%s' % 
+                       (self.wiki, revision['revid'], revision['parentid']),
+               'user': revision['user'],
+               'size': revision['size'],
+               'comment': revision['comment'],
+               'title': self.post_data['triggerFields']['title']}
+        ret.update(super(WikipediaArticleRevisions, self).parse_result(ret))
+        return ret
+
+
+class RandomWikipediaArticleOfTheDay(DailyAPIQueryTriggerView):
+    wiki = 'en.wikipedia.org'
+    query_params = {'action': 'query',
+                    'list': 'random',
+                    'rnnamespace': 0,
+                    'rnlimit': 1,
+                    'format': 'json'}
+
+    def parse_query(self):
+        rand_query = super(RandomWikipediaArticleOfTheDay, self).parse_query()
+        page_title = rand_query['query']['random'][0]['title']
+        url = 'https://%s/wiki/%s' % (self.wiki, page_title.replace(' ', '_'))
+        rand_query['article_title'] = page_title
+        rand_query['article_url'] = url
+        rand_query.pop('query', None)
+        rand_query.pop('published_parsed', None)
+        rand_query.pop('warnings', None)
+        return rand_query
+
+
+for view_class in (ArticleOfTheDay, 
+                   PictureOfTheDay, 
+                   WordOfTheDay, 
+                   RandomWikipediaArticleOfTheDay,
+                   WikipediaArticleRevisions):
     slug = snake_case(view_class.__name__)
     app.add_url_rule('/v1/triggers/%s' % slug,
                      view_func=view_class.as_view(slug))

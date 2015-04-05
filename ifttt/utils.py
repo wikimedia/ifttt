@@ -54,3 +54,8 @@ def utc_to_iso8601(struct_time):
 def utc_to_epoch(struct_time):
     """Convert a struct_time to an integer number of seconds since epoch."""
     return int(time.mktime(struct_time))
+
+def iso8601_to_epoch(iso_time):
+    dt = datetime.datetime.strptime(iso_time, '%Y-%m-%dT%H:%M:%SZ')
+    epoch = datetime.datetime.utcfromtimestamp(0)
+    return (dt - epoch).total_seconds()
