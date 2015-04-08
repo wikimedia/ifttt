@@ -143,14 +143,16 @@ class WikipediaArticleRevisions(APIQueryTriggerView):
                     'format': 'json'}
 
     def get_query(self):
-        self.query_params['titles'] = self.post_data['triggerFields']['title']
+        self.query_params['titles'] = self.post_data['triggerFields'].get('title')
+        if not self.query_params['titles']:
+            return []
         ret = super(WikipediaArticleRevisions, self).get_query()
         return ret
 
     def get_results(self):
         api_resp = self.get_query()
-        page_id = api_resp['query']['pages'].keys()[0]
         try:
+            page_id = api_resp['query']['pages'].keys()[0]
             revisions = api_resp['query']['pages'][page_id]['revisions']
         except KeyError:
             return []
