@@ -29,6 +29,13 @@ app = flask.Flask(__name__)
 app.config.from_pyfile('../ifttt.cfg', silent=True)
 
 
+@app.errorhandler(400)
+def unauthorized(e):
+    """There was something wrong with incoming data from IFTTT. """
+    error = {'message': 'missing required trigger field'}
+    return flask.jsonify(errors=[error]), 400
+
+
 @app.errorhandler(401)
 def unauthorized(e):
     """Issue an HTTP 401 Unauthorized response with a JSON body."""
@@ -145,7 +152,7 @@ class WikipediaArticleRevisions(APIQueryTriggerView):
     def get_query(self):
         self.query_params['titles'] = self.post_data['triggerFields'].get('title')
         if not self.query_params['titles']:
-            return []
+            flask.abort(400)
         ret = super(WikipediaArticleRevisions, self).get_query()
         return ret
 
