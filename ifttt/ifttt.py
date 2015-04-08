@@ -58,7 +58,14 @@ def validate_channel_key():
 @app.route('/v1/test/setup', methods=['POST'])
 def test_setup():
     """Required by the IFTTT endpoint test suite."""
-    return flask.jsonify(data={'samples': {}})
+    ret = {'samples': 
+              {'triggers': 
+                  {'wikipedia_article_revisions': 
+                      {'title': 'Coffee'}
+                  }
+              }
+          }
+    return flask.jsonify(data=ret)
 
 
 @app.route('/v1/status')
