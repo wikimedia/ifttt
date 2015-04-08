@@ -101,8 +101,10 @@ class APIQueryTriggerView(flask.views.MethodView):
 
     def post(self):
         params = flask.request.get_json(force=True, silent=True) or {}
+        limit = params.get('limit', 50)
         self.post_data = json.loads(flask.request.data)
         ret = self.get_results()
+        ret = ret[:limit]
         return flask.jsonify(data=ret)
 
 
@@ -133,9 +135,11 @@ class DailyAPIQueryTriggerView(flask.views.MethodView):
 
     def post(self):
         params = flask.request.get_json(force=True, silent=True) or {}
+        limit = params.get('limit', 50)
         self.post_data = json.loads(flask.request.data)
         self.trigger_id = self.post_data.get('trigger_identity', '')
         ret = [self.parse_query()]
+        ret = ret[:limit]
         return flask.jsonify(data=ret)
 
 
