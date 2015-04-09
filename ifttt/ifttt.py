@@ -67,8 +67,8 @@ def test_setup():
     """Required by the IFTTT endpoint test suite."""
     ret = {'samples': 
               {'triggers': 
-                  {'wikipedia_article_revisions': 
-                      {'title': 'Coffee'}
+                  {'wikipedia_article_revisions': {'title': 'Coffee'},
+                   'wikipedia_user_revisions': {'user': 'Slaporte'},
                   }
               }
           }
@@ -177,6 +177,43 @@ class WikipediaArticleRevisions(APIQueryTriggerView):
         return ret
 
 
+class WikipediaUserRevisions(APIQueryTriggerView):
+
+    wiki = 'en.wikipedia.org'
+    query_params = {'action': 'query',
+                    'list': 'usercontribs',
+                    'ucuser': None,
+                    'uclimit': 50,
+                    'ucprop': 'ids|timestamp|title|size|comment',
+                    'format': 'json'}
+
+    def get_query(self):
+        self.query_params['ucuser'] = self.post_data['triggerFields'].get('user')
+        if not self.query_params['ucuser']:
+            flask.abort(400)
+        ret = super(WikipediaUserRevisions, self).get_query()
+        return ret
+
+    def get_results(self):
+        api_resp = self.get_query()
+        try:
+            revisions = api_resp['query']['usercontribs']
+        except KeyError:
+            return []
+        return map(self.parse_result, revisions)
+
+    def parse_result(self, contrib):
+        ret = {'date': contrib['timestamp'],
+               'url': 'https://%s/w/index.php?diff=%s&oldid=%s' % 
+                       (self.wiki, contrib['revid'], contrib['parentid']),
+               'user': self.post_data['triggerFields']['user'],
+               'size': contrib['size'],
+               'comment': contrib['comment'],
+               'title': contrib['user']}
+        ret.update(super(WikipediaUserRevisions, self).parse_result(ret))
+        return ret
+
+
 class RandomWikipediaArticleOfTheDay(DailyAPIQueryTriggerView):
     wiki = 'en.wikipedia.org'
     query_params = {'action': 'query',
@@ -201,7 +238,8 @@ for view_class in (ArticleOfTheDay,
                    PictureOfTheDay, 
                    WordOfTheDay, 
                    RandomWikipediaArticleOfTheDay,
-                   WikipediaArticleRevisions):
+                   WikipediaArticleRevisions,
+                   WikipediaUserRevisions):
     slug = snake_case(view_class.__name__)
     app.add_url_rule('/v1/triggers/%s' % slug,
                      view_func=view_class.as_view(slug))

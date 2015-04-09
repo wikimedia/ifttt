@@ -141,5 +141,3 @@ class DailyAPIQueryTriggerView(flask.views.MethodView):
         ret = [self.parse_query()]
         ret = ret[:limit]
         return flask.jsonify(data=ret)
-
-
