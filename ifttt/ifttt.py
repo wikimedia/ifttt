@@ -150,7 +150,7 @@ class WikipediaArticleRevisions(APIQueryTriggerView):
                     'format': 'json'}
 
     def get_query(self):
-        self.query_params['titles'] = self.post_data['triggerFields'].get('title')
+        self.query_params['titles'] = self.post_data.get('triggerFields', {}).get('title')
         if not self.query_params['titles']:
             flask.abort(400)
         ret = super(WikipediaArticleRevisions, self).get_query()
@@ -188,7 +188,7 @@ class WikipediaUserRevisions(APIQueryTriggerView):
                     'format': 'json'}
 
     def get_query(self):
-        self.query_params['ucuser'] = self.post_data['triggerFields'].get('user')
+        self.query_params['titles'] = self.post_data.get('triggerFields', {}).get('user')
         if not self.query_params['ucuser']:
             flask.abort(400)
         ret = super(WikipediaUserRevisions, self).get_query()
