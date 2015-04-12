@@ -236,6 +236,8 @@ class WikipediaUserRevisions(APIQueryTriggerView):
 
 
 class RandomWikipediaArticleOfTheDay(DailyAPIQueryTriggerView):
+    """This trigger doesn't exactly fit IFTTT's model, so I'm leaving it
+       inactive for now."""
 
     wiki = 'en.wikipedia.org'
     query_params = {'action': 'query',
@@ -314,6 +316,8 @@ class ValidateUser(APIQueryTriggerView):
         page_ids = api_resp['query']['users']
         if page_ids[0].get('userid'):
             return True
+        # The MW API doesn't validate unregistered users,
+        # so the next few lines allow any valid IP address
         username = self.query_params['ususers']
         try:
             socket.inet_aton(username)
