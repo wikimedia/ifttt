@@ -74,7 +74,21 @@ def test_setup():
             'triggers': {
                 'wikipedia_article_revisions': {'title': 'Coffee'},
                 'wikipedia_user_revisions': {'user': 'Slaporte'},
-            }
+            },
+            'triggerFieldValidations': {
+                'wikipedia_article_revisions': {
+                    'title': {
+                        'valid': 'Coffee',
+                        'invalid': 'ThisPageDoesNotExist'
+                    },
+                },
+                'wikipedia_user_revisions': {
+                    'user': {
+                        'valid': 'ClueBot',
+                        'invalid': 'ThisUserDoesNotExist'
+                    },
+                }
+            },
         }
     }
     return flask.jsonify(data=ret)
