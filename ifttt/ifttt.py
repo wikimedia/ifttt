@@ -26,7 +26,8 @@ import socket
 from .utils import select, snake_case
 from .views import (FeaturedFeedTriggerView,
                     APIQueryTriggerView,
-                    DailyAPIQueryTriggerView)
+                    DailyAPIQueryTriggerView,
+                    HashtagsTriggerView)
 
 
 app = flask.Flask(__name__)
@@ -352,7 +353,8 @@ for view_class in (ArticleOfTheDay,
                    WikipediaArticleRevisions,
                    WikipediaUserRevisions,
                    ValidateArticleTitle,
-                   ValidateUser):
+                   ValidateUser,
+                   HashtagsTriggerView):
     slug = getattr(view_class, 'url_pattern', None)
     if not slug:
         slug = snake_case(view_class.__name__)

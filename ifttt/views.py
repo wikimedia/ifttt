@@ -30,7 +30,7 @@ import flask.views
 import werkzeug.contrib.cache
 
 from .utils import url_to_uuid5, utc_to_epoch, utc_to_iso8601, iso8601_to_epoch
-
+from .dal import get_hashtags
 
 __all__ = ('FeaturedFeedTriggerView',)
 
@@ -93,7 +93,9 @@ class APIQueryTriggerView(flask.views.MethodView):
         meta_id = url_to_uuid5(result['url'])
         created_at = result['date']
         ts = iso8601_to_epoch(result['date'])
-        return {'created_at': created_at, 'meta': {'id': meta_id, 'timestamp': ts}}
+        return {'created_at': created_at, 'meta': {
+            'id': meta_id, 'timestamp': ts}
+        }
 
     def get_results(self):
         resp = self.get_query()
@@ -138,6 +140,26 @@ class DailyAPIQueryTriggerView(flask.views.MethodView):
         limit = params.get('limit', 50)
         self.post_data = json.loads(flask.request.data)
         self.trigger_id = self.post_data.get('trigger_identity', '')
+        ret = [self.parse_query()]
+        ret = ret[:limit]
+        return flask.jsonify(data=ret)
+
+
+class HashtagsTriggerView(flask.views.MethodView):
+
+    url_pattern = 'hashtag'
+
+    def get_hashtags(self):
+        self.tag = self.post_data('hashtag')
+        if not self.tag:
+            flask.abort(400)
+        resp = get_hashtags()
+
+    def post(self):
+        params = flask.request.get_json(force=True, silent=True) or {}
+        limit = params.get('limit', 50)
+        self.post_data = json.loads(flask.request.data)
+
         ret = [self.parse_query()]
         ret = ret[:limit]
         return flask.jsonify(data=ret)
