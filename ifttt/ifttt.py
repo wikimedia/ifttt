@@ -20,9 +20,13 @@
 """
 import flask
 import lxml.html
+import json
+import socket
 
 from .utils import select, snake_case
-from .views import FeaturedFeedTriggerView, APIQueryTriggerView, DailyAPIQueryTriggerView
+from .views import (FeaturedFeedTriggerView,
+                    APIQueryTriggerView,
+                    DailyAPIQueryTriggerView)
 
 
 app = flask.Flask(__name__)
@@ -65,13 +69,14 @@ def validate_channel_key():
 @app.route('/v1/test/setup', methods=['POST'])
 def test_setup():
     """Required by the IFTTT endpoint test suite."""
-    ret = {'samples': 
-              {'triggers': 
-                  {'wikipedia_article_revisions': {'title': 'Coffee'},
-                   'wikipedia_user_revisions': {'user': 'Slaporte'},
-                  }
-              }
-          }
+    ret = {
+        'samples': {
+            'triggers': {
+                'wikipedia_article_revisions': {'title': 'Coffee'},
+                'wikipedia_user_revisions': {'user': 'Slaporte'},
+            }
+        }
+    }
     return flask.jsonify(data=ret)
 
 
@@ -150,7 +155,8 @@ class WikipediaArticleRevisions(APIQueryTriggerView):
                     'format': 'json'}
 
     def get_query(self):
-        self.query_params['titles'] = self.post_data.get('triggerFields', {}).get('title')
+        trigger_fields = self.post_data.get('triggerFields', {})
+        self.query_params['titles'] = trigger_fields.get('title')
         if not self.query_params['titles']:
             flask.abort(400)
         ret = super(WikipediaArticleRevisions, self).get_query()
@@ -167,8 +173,8 @@ class WikipediaArticleRevisions(APIQueryTriggerView):
 
     def parse_result(self, revision):
         ret = {'date': revision['timestamp'],
-               'url': 'https://%s/w/index.php?diff=%s&oldid=%s' % 
-                       (self.wiki, revision['revid'], revision['parentid']),
+               'url': 'https://%s/w/index.php?diff=%s&oldid=%s' %
+                      (self.wiki, revision['revid'], revision['parentid']),
                'user': revision['user'],
                'size': revision['size'],
                'comment': revision['comment'],
@@ -188,7 +194,8 @@ class WikipediaUserRevisions(APIQueryTriggerView):
                     'format': 'json'}
 
     def get_query(self):
-        self.query_params['ucuser'] = self.post_data.get('triggerFields', {}).get('user')
+        trigger_fields = self.post_data.get('triggerFields', {})
+        self.query_params['ucuser'] = trigger_fields.get('user')
         if not self.query_params['ucuser']:
             flask.abort(400)
         ret = super(WikipediaUserRevisions, self).get_query()
@@ -204,8 +211,8 @@ class WikipediaUserRevisions(APIQueryTriggerView):
 
     def parse_result(self, contrib):
         ret = {'date': contrib['timestamp'],
-               'url': 'https://%s/w/index.php?diff=%s&oldid=%s' % 
-                       (self.wiki, contrib['revid'], contrib['parentid']),
+               'url': 'https://%s/w/index.php?diff=%s&oldid=%s' %
+                      (self.wiki, contrib['revid'], contrib['parentid']),
                'user': self.post_data['triggerFields']['user'],
                'size': contrib['size'],
                'comment': contrib['comment'],
@@ -215,6 +222,7 @@ class WikipediaUserRevisions(APIQueryTriggerView):
 
 
 class RandomWikipediaArticleOfTheDay(DailyAPIQueryTriggerView):
+
     wiki = 'en.wikipedia.org'
     query_params = {'action': 'query',
                     'list': 'random',
@@ -234,12 +242,101 @@ class RandomWikipediaArticleOfTheDay(DailyAPIQueryTriggerView):
         return rand_query
 
 
-for view_class in (ArticleOfTheDay, 
-                   PictureOfTheDay, 
-                   WordOfTheDay, 
+class ValidateArticleTitle(APIQueryTriggerView):
+
+    url_pattern = 'wikipedia_article_revisions/fields/title/validate'
+    wiki = 'en.wikipedia.org'
+    query_params = {'action': 'query',
+                    'prop': 'info',
+                    'titles': None,
+                    'format': 'json'}
+
+    def get_query(self):
+        self.query_params['titles'] = self.post_data.get('value')
+        if not self.query_params['titles']:
+            flask.abort(400)
+        ret = super(ValidateArticleTitle, self).get_query()
+        return ret
+
+    def check_page(self):
+        api_resp = self.get_query()
+        page_ids = api_resp['query']['pages'].keys()
+        if int(page_ids[0]) > 0:
+            return True
+        return False
+
+    def post(self):
+        params = flask.request.get_json(force=True, silent=True) or {}
+        self.post_data = json.loads(flask.request.data)
+        exists = self.check_page()
+        title = self.query_params['titles']
+        ret = {
+            'valid': exists
+        }
+        if not exists:
+            ret['message'] = ('A Wikipedia article on %s does not (yet)'
+                              ' exist (go write it!)' % title)
+        return flask.jsonify(data=ret)
+
+
+class ValidateUser(APIQueryTriggerView):
+
+    url_pattern = 'wikipedia_user_revisions/fields/user/validate'
+    wiki = 'en.wikipedia.org'
+    query_params = {'action': 'query',
+                    'list': 'users',
+                    'ususers': None,
+                    'format': 'json'}
+
+    def get_query(self):
+        self.query_params['ususers'] = self.post_data.get('value')
+        if not self.query_params['ususers']:
+            flask.abort(400)
+        ret = super(ValidateUser, self).get_query()
+        return ret
+
+    def check_user(self):
+        api_resp = self.get_query()
+        page_ids = api_resp['query']['users']
+        if page_ids[0].get('userid'):
+            return True
+        username = self.query_params['ususers']
+        try:
+            socket.inet_aton(username)
+            return True
+        except socket.error:
+            pass
+        try:
+            socket.inet_pton(socket.AF_INET6, username)
+            return True
+        except socket.error:
+            pass
+        return False
+
+    def post(self):
+        params = flask.request.get_json(force=True, silent=True) or {}
+        self.post_data = json.loads(flask.request.data)
+        exists = self.check_user()
+        title = self.query_params['ususers']
+        ret = {
+            'valid': exists
+        }
+        if not exists:
+            ret['message'] = ('There is no Wikipedian named %s'
+                              % title)
+        return flask.jsonify(data=ret)
+
+
+for view_class in (ArticleOfTheDay,
+                   PictureOfTheDay,
+                   WordOfTheDay,
                    RandomWikipediaArticleOfTheDay,
                    WikipediaArticleRevisions,
-                   WikipediaUserRevisions):
-    slug = snake_case(view_class.__name__)
+                   WikipediaUserRevisions,
+                   ValidateArticleTitle,
+                   ValidateUser):
+    slug = getattr(view_class, 'url_pattern', None)
+    if not slug:
+        slug = snake_case(view_class.__name__)
     app.add_url_rule('/v1/triggers/%s' % slug,
                      view_func=view_class.as_view(slug))
