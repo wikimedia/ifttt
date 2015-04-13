@@ -73,18 +73,18 @@ def test_setup():
     ret = {
         'samples': {
             'triggers': {
-                'wikipedia_article_revisions': {'title': 'Coffee'},
-                'wikipedia_user_revisions': {'user': 'Slaporte'},
+                'article_revisions': {'title': 'Coffee'},
+                'user_revisions': {'user': 'Slaporte'},
                 'hashtag': {'hashtag': 'test'}
             },
             'triggerFieldValidations': {
-                'wikipedia_article_revisions': {
+                'article_revisions': {
                     'title': {
                         'valid': 'Coffee',
                         'invalid': 'ThisPageDoesNotExist'
                     },
                 },
-                'wikipedia_user_revisions': {
+                'user_revisions': {
                     'user': {
                         'valid': 'ClueBot',
                         'invalid': 'ThisUserDoesNotExist'
@@ -293,7 +293,7 @@ class RandomWikipediaArticleOfTheDay(DailyAPIQueryTriggerView):
 
 class ValidateArticleTitle(APIQueryTriggerView):
 
-    url_pattern = 'wikipedia_article_revisions/fields/title/validate'
+    url_pattern = 'article_revisions/fields/title/validate'
     wiki = 'en.wikipedia.org'
     query_params = {'action': 'query',
                     'prop': 'info',
@@ -329,7 +329,7 @@ class ValidateArticleTitle(APIQueryTriggerView):
 
 class ValidateUser(APIQueryTriggerView):
 
-    url_pattern = 'wikipedia_user_revisions/fields/user/validate'
+    url_pattern = 'user_revisions/fields/user/validate'
     wiki = 'en.wikipedia.org'
     query_params = {'action': 'query',
                     'list': 'users',

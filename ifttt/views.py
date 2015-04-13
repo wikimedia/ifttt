@@ -75,9 +75,9 @@ class FeaturedFeedTriggerView(flask.views.MethodView):
 
     def post(self):
         """Handle POST requests."""
-        params = flask.request.get_json(force=True, silent=True) or {}
+        self.params = flask.request.get_json(force=True, silent=True) or {}
         logging.info('%s: %s' %
-                    (self.__class__.__name__, params.get('trigger_identity')))
+                    (self.__class__.__name__, self.params.get('trigger_identity')))
         limit = self.params.get('limit', 50)
         items = self.get_items()
         items = items[:limit]
@@ -114,7 +114,7 @@ class APIQueryTriggerView(flask.views.MethodView):
     def post(self):
         self.params = flask.request.get_json(force=True, silent=True) or {}
         logging.info('%s: %s' %
-                    (self.__class__.__name__, params.get('trigger_identity')))
+                    (self.__class__.__name__, self.params.get('trigger_identity')))
         limit = self.params.get('limit', 50)
         ret = self.get_results()
         ret = ret[:limit]
@@ -193,7 +193,7 @@ class HashtagsTriggerView(flask.views.MethodView):
     def post(self):
         self.params = flask.request.get_json(force=True, silent=True) or {}
         logging.info('%s: %s' %
-                    (self.__class__.__name__, params.get('trigger_identity')))
+                    (self.__class__.__name__, self.params.get('trigger_identity')))
         limit = self.params.get('limit', 50)
         ret = self.get_hashtags()
         ret = ret[:limit]
