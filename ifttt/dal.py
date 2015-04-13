@@ -22,7 +22,7 @@
 import os
 import oursql
 
-DEFAULT_HOURS = 6
+DEFAULT_HOURS = 2
 
 DB_CONFIG_PATH = os.path.expanduser('~/replica.my.cnf')
 TEMPLATES_PATH = 'templates'
