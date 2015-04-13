@@ -148,23 +148,41 @@ class DailyAPIQueryTriggerView(flask.views.MethodView):
 class HashtagsTriggerView(flask.views.MethodView):
 
     url_pattern = 'hashtag'
+    wiki = 'en.wikipedia.org'
 
     def get_hashtags(self):
-	trigger_fields = self.post_data.get('triggerFields', {})
+        trigger_fields = self.post_data.get('triggerFields', {})
         self.tag = trigger_fields.get('hashtag')
         if not self.tag:
             flask.abort(400)
         resp = get_hashtags(self.tag)
-	map(self.parse_result, resp)
+        return map(self.parse_result, resp)
 
     def parse_result(self, rev):
-	print rev
-	return rev
+        date = datetime.datetime.strptime(rev['rc_timestamp'], '%Y%m%d%H%M%S')
+        date = date.isoformat() + 'Z'
+        ret = {
+            'date': date,
+            'url': 'https://%s/w/index.php?diff=%s&oldid=%s' %
+                   (self.wiki,
+                    int(rev['rc_cur_id']),
+                    int(rev['rc_this_oldid'])),
+            'user': rev['rc_user_text'],
+            'size': rev['rc_new_len'] - rev['rc_old_len'],
+            'comment': rev['rc_comment'],
+            'title': rev['rc_title']
+        }
+        ret['created_at'] = date
+        ret['meta'] = {
+            'id': url_to_uuid5(ret['url']),
+            'timestamp': iso8601_to_epoch(date)
+        }
+        return rev
 
     def post(self):
         params = flask.request.get_json(force=True, silent=True) or {}
         limit = params.get('limit', 50)
         self.post_data = json.loads(flask.request.data)
-        ret = [self.get_hashtags()]
+        ret = self.get_hashtags()
         ret = ret[:limit]
         return flask.jsonify(data=ret)
