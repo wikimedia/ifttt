@@ -162,11 +162,12 @@ class HashtagsTriggerView(flask.views.MethodView):
         date = datetime.datetime.strptime(rev['rc_timestamp'], '%Y%m%d%H%M%S')
         date = date.isoformat() + 'Z'
         ret = {
+            'hashtag': self.tag,
             'date': date,
             'url': 'https://%s/w/index.php?diff=%s&oldid=%s' %
                    (self.wiki,
-                    int(rev['rc_cur_id']),
-                    int(rev['rc_this_oldid'])),
+                    int(rev['rc_this_oldid']),
+                    int(rev['rc_last_oldid'])),
             'user': rev['rc_user_text'],
             'size': rev['rc_new_len'] - rev['rc_old_len'],
             'comment': rev['rc_comment'],
@@ -177,7 +178,7 @@ class HashtagsTriggerView(flask.views.MethodView):
             'id': url_to_uuid5(ret['url']),
             'timestamp': iso8601_to_epoch(date)
         }
-        return rev
+        return ret
 
     def post(self):
         params = flask.request.get_json(force=True, silent=True) or {}

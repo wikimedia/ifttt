@@ -75,6 +75,7 @@ def test_setup():
             'triggers': {
                 'wikipedia_article_revisions': {'title': 'Coffee'},
                 'wikipedia_user_revisions': {'user': 'Slaporte'},
+                'hashtag': {'hashtag': 'test'}
             },
             'triggerFieldValidations': {
                 'wikipedia_article_revisions': {
