@@ -191,7 +191,7 @@ class NewArticle(APIQueryTriggerView):
         return ret
 
 
-class WikipediaArticleRevisions(APIQueryTriggerView):
+class ArticleRevisions(APIQueryTriggerView):
 
     wiki = 'en.wikipedia.org'
     query_params = {'action': 'query',
@@ -206,7 +206,7 @@ class WikipediaArticleRevisions(APIQueryTriggerView):
         self.query_params['titles'] = trigger_fields.get('title')
         if not self.query_params['titles']:
             flask.abort(400)
-        ret = super(WikipediaArticleRevisions, self).get_query()
+        ret = super(ArticleRevisions, self).get_query()
         return ret
 
     def get_results(self):
@@ -226,11 +226,11 @@ class WikipediaArticleRevisions(APIQueryTriggerView):
                'size': revision['size'],
                'comment': revision['comment'],
                'title': self.post_data['triggerFields']['title']}
-        ret.update(super(WikipediaArticleRevisions, self).parse_result(ret))
+        ret.update(super(ArticleRevisions, self).parse_result(ret))
         return ret
 
 
-class WikipediaUserRevisions(APIQueryTriggerView):
+class UserRevisions(APIQueryTriggerView):
 
     wiki = 'en.wikipedia.org'
     query_params = {'action': 'query',
@@ -245,7 +245,7 @@ class WikipediaUserRevisions(APIQueryTriggerView):
         self.query_params['ucuser'] = trigger_fields.get('user')
         if not self.query_params['ucuser']:
             flask.abort(400)
-        ret = super(WikipediaUserRevisions, self).get_query()
+        ret = super(UserRevisions, self).get_query()
         return ret
 
     def get_results(self):
@@ -264,7 +264,7 @@ class WikipediaUserRevisions(APIQueryTriggerView):
                'size': contrib['size'],
                'comment': contrib['comment'],
                'title': contrib['user']}
-        ret.update(super(WikipediaUserRevisions, self).parse_result(ret))
+        ret.update(super(UserRevisions, self).parse_result(ret))
         return ret
 
 
@@ -382,8 +382,8 @@ for view_class in (ArticleOfTheDay,
                    PictureOfTheDay,
                    WordOfTheDay,
                    RandomWikipediaArticleOfTheDay,
-                   WikipediaArticleRevisions,
-                   WikipediaUserRevisions,
+                   ArticleRevisions,
+                   UserRevisions,
                    NewArticle,
                    ValidateArticleTitle,
                    ValidateUser,
