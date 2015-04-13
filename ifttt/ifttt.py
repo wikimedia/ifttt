@@ -160,6 +160,37 @@ class WordOfTheDay(FeaturedFeedTriggerView):
         return item
 
 
+class NewArticle(APIQueryTriggerView):
+
+    wiki = 'en.wikipedia.org'
+    query_params = {'action': 'query',
+                    'list': 'recentchanges',
+                    'rctype': 'new',
+                    'rclimit': 50,
+                    'rcnamespace': 0,
+                    'rcprop': 'title|ids|timestamp|user|sizes|comment',
+                    'format': 'json'}
+
+    def get_results(self):
+        api_resp = self.get_query()
+        try:
+            pages = api_resp['query']['recentchanges']
+        except KeyError:
+            return []
+        return map(self.parse_result, pages)
+
+    def parse_result(self, rev):
+        ret = {'date': rev['timestamp'],
+               'url': 'https://%s/w/index.php?oldid=%s' %
+                      (self.wiki, rev['revid']),
+               'user': rev['user'],
+               'size': rev['newlen'] - rev['oldlen'],
+               'comment': rev['comment'],
+               'title': rev['title']}
+        ret.update(super(NewArticle, self).parse_result(ret))
+        return ret
+
+
 class WikipediaArticleRevisions(APIQueryTriggerView):
 
     wiki = 'en.wikipedia.org'
@@ -353,6 +384,7 @@ for view_class in (ArticleOfTheDay,
                    RandomWikipediaArticleOfTheDay,
                    WikipediaArticleRevisions,
                    WikipediaUserRevisions,
+                   NewArticle,
                    ValidateArticleTitle,
                    ValidateUser,
                    HashtagsTriggerView):
