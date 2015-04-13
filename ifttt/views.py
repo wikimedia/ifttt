@@ -150,16 +150,21 @@ class HashtagsTriggerView(flask.views.MethodView):
     url_pattern = 'hashtag'
 
     def get_hashtags(self):
-        self.tag = self.post_data('hashtag')
+	trigger_fields = self.post_data.get('triggerFields', {})
+        self.tag = trigger_fields.get('hashtag')
         if not self.tag:
             flask.abort(400)
-        resp = get_hashtags()
+        resp = get_hashtags(self.tag)
+	map(self.parse_result, resp)
+
+    def parse_result(self, rev):
+	print rev
+	return rev
 
     def post(self):
         params = flask.request.get_json(force=True, silent=True) or {}
         limit = params.get('limit', 50)
         self.post_data = json.loads(flask.request.data)
-
-        ret = [self.parse_query()]
+        ret = [self.get_hashtags()]
         ret = ret[:limit]
         return flask.jsonify(data=ret)

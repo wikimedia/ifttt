@@ -38,7 +38,6 @@ def get_hashtags(tag, lang='en', hours=DEFAULT_HOURS):
         AND rc_comment REGEXP ?'''
     db_title = lang + 'wiki_p'
     db_host = lang + 'wiki.labsdb'
-    import pdb;pdb.set_trace()
     connection = oursql.connect(db=db_title,
                                 host=db_host,
                                 read_default_file=DB_CONFIG_PATH,
