@@ -181,8 +181,8 @@ class NewArticle(APIQueryTriggerView):
 
     def parse_result(self, rev):
         ret = {'date': rev['timestamp'],
-               'url': 'https://%s/w/index.php?oldid=%s' %
-                      (self.wiki, rev['revid']),
+               'url': 'https://%s/wiki/%s' %
+                      (self.wiki, rev['title']),
                'user': rev['user'],
                'size': rev['newlen'] - rev['oldlen'],
                'comment': rev['comment'],
@@ -202,7 +202,7 @@ class ArticleRevisions(APIQueryTriggerView):
                     'format': 'json'}
 
     def get_query(self):
-        trigger_fields = self.post_data.get('triggerFields', {})
+        trigger_fields = self.params.get('triggerFields', {})
         self.query_params['titles'] = trigger_fields.get('title')
         if not self.query_params['titles']:
             flask.abort(400)
@@ -225,7 +225,7 @@ class ArticleRevisions(APIQueryTriggerView):
                'user': revision['user'],
                'size': revision['size'],
                'comment': revision['comment'],
-               'title': self.post_data['triggerFields']['title']}
+               'title': self.params['triggerFields']['title']}
         ret.update(super(ArticleRevisions, self).parse_result(ret))
         return ret
 
@@ -241,7 +241,7 @@ class UserRevisions(APIQueryTriggerView):
                     'format': 'json'}
 
     def get_query(self):
-        trigger_fields = self.post_data.get('triggerFields', {})
+        trigger_fields = self.params.get('triggerFields', {})
         self.query_params['ucuser'] = trigger_fields.get('user')
         if not self.query_params['ucuser']:
             flask.abort(400)
@@ -260,7 +260,7 @@ class UserRevisions(APIQueryTriggerView):
         ret = {'date': contrib['timestamp'],
                'url': 'https://%s/w/index.php?diff=%s&oldid=%s' %
                       (self.wiki, contrib['revid'], contrib['parentid']),
-               'user': self.post_data['triggerFields']['user'],
+               'user': self.params['triggerFields']['user'],
                'size': contrib['size'],
                'comment': contrib['comment'],
                'title': contrib['user']}
@@ -301,7 +301,7 @@ class ValidateArticleTitle(APIQueryTriggerView):
                     'format': 'json'}
 
     def get_query(self):
-        self.query_params['titles'] = self.post_data.get('value')
+        self.query_params['titles'] = self.params.get('value')
         if not self.query_params['titles']:
             flask.abort(400)
         ret = super(ValidateArticleTitle, self).get_query()
@@ -315,8 +315,7 @@ class ValidateArticleTitle(APIQueryTriggerView):
         return False
 
     def post(self):
-        params = flask.request.get_json(force=True, silent=True) or {}
-        self.post_data = json.loads(flask.request.data)
+        self.params = flask.request.get_json(force=True, silent=True) or {}
         exists = self.check_page()
         title = self.query_params['titles']
         ret = {
@@ -338,7 +337,7 @@ class ValidateUser(APIQueryTriggerView):
                     'format': 'json'}
 
     def get_query(self):
-        self.query_params['ususers'] = self.post_data.get('value')
+        self.query_params['ususers'] = self.params.get('value')
         if not self.query_params['ususers']:
             flask.abort(400)
         ret = super(ValidateUser, self).get_query()
@@ -365,8 +364,7 @@ class ValidateUser(APIQueryTriggerView):
         return False
 
     def post(self):
-        params = flask.request.get_json(force=True, silent=True) or {}
-        self.post_data = json.loads(flask.request.data)
+        self.params = flask.request.get_json(force=True, silent=True) or {}
         exists = self.check_user()
         title = self.query_params['ususers']
         ret = {
@@ -381,7 +379,6 @@ class ValidateUser(APIQueryTriggerView):
 for view_class in (ArticleOfTheDay,
                    PictureOfTheDay,
                    WordOfTheDay,
-                   RandomWikipediaArticleOfTheDay,
                    ArticleRevisions,
                    UserRevisions,
                    NewArticle,

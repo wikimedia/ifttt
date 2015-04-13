@@ -44,6 +44,7 @@ logging.basicConfig(filename=LOG_FILE,
                     datefmt='%m/%d/%Y %I:%M:%S %p',
                     level=logging.DEBUG)
 
+
 class FeaturedFeedTriggerView(flask.views.MethodView):
     """Generic view for IFTT Triggers based on FeaturedFeeds."""
 
@@ -75,8 +76,9 @@ class FeaturedFeedTriggerView(flask.views.MethodView):
     def post(self):
         """Handle POST requests."""
         params = flask.request.get_json(force=True, silent=True) or {}
-        logging.info('%s: %s' % (self.__class__.__name__, params.get('trigger_identity')))
-        limit = params.get('limit', 50)
+        logging.info('%s: %s' %
+                    (self.__class__.__name__, params.get('trigger_identity')))
+        limit = self.params.get('limit', 50)
         items = self.get_items()
         items = items[:limit]
         return flask.jsonify(data=items)
@@ -110,10 +112,10 @@ class APIQueryTriggerView(flask.views.MethodView):
         return map(self.parse_result, resp)
 
     def post(self):
-        params = flask.request.get_json(force=True, silent=True) or {}
-        logging.info('%s: %s' % (self.__class__.__name__, params.get('trigger_identity')))
-        limit = params.get('limit', 50)
-        self.post_data = json.loads(flask.request.data)
+        self.params = flask.request.get_json(force=True, silent=True) or {}
+        logging.info('%s: %s' %
+                    (self.__class__.__name__, params.get('trigger_identity')))
+        limit = self.params.get('limit', 50)
         ret = self.get_results()
         ret = ret[:limit]
         return flask.jsonify(data=ret)
@@ -145,10 +147,9 @@ class DailyAPIQueryTriggerView(flask.views.MethodView):
         return query_resp
 
     def post(self):
-        params = flask.request.get_json(force=True, silent=True) or {}
-        limit = params.get('limit', 50)
-        self.post_data = json.loads(flask.request.data)
-        self.trigger_id = self.post_data.get('trigger_identity', '')
+        self.params = flask.request.get_json(force=True, silent=True) or {}
+        limit = self.params.get('limit', 50)
+        self.trigger_id = self.params.get('trigger_identity', '')
         ret = [self.parse_query()]
         ret = ret[:limit]
         return flask.jsonify(data=ret)
@@ -160,7 +161,7 @@ class HashtagsTriggerView(flask.views.MethodView):
     wiki = 'en.wikipedia.org'
 
     def get_hashtags(self):
-        trigger_fields = self.post_data.get('triggerFields', {})
+        trigger_fields = self.params.get('triggerFields', {})
         self.tag = trigger_fields.get('hashtag')
         if not self.tag:
             flask.abort(400)
@@ -190,10 +191,10 @@ class HashtagsTriggerView(flask.views.MethodView):
         return ret
 
     def post(self):
-        params = flask.request.get_json(force=True, silent=True) or {}
-        logging.info('%s: %s' % (self.__class__.__name__, params.get('trigger_identity')))
-        limit = params.get('limit', 50)
-        self.post_data = json.loads(flask.request.data)
+        self.params = flask.request.get_json(force=True, silent=True) or {}
+        logging.info('%s: %s' %
+                    (self.__class__.__name__, params.get('trigger_identity')))
+        limit = self.params.get('limit', 50)
         ret = self.get_hashtags()
         ret = ret[:limit]
         return flask.jsonify(data=ret)
