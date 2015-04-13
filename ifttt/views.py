@@ -18,6 +18,7 @@
   limitations under the License.
 
 """
+import os
 import datetime
 import operator
 import urllib2
@@ -28,6 +29,7 @@ import feedparser
 import flask
 import flask.views
 import werkzeug.contrib.cache
+import logging
 
 from .utils import url_to_uuid5, utc_to_epoch, utc_to_iso8601, iso8601_to_epoch
 from .dal import get_hashtags
@@ -36,6 +38,11 @@ __all__ = ('FeaturedFeedTriggerView',)
 
 feed_cache = werkzeug.contrib.cache.SimpleCache()
 
+LOG_FILE = 'ifttt.log'
+logging.basicConfig(filename=LOG_FILE,
+                    format='%(asctime)s - %(message)s',
+                    datefmt='%m/%d/%Y %I:%M:%S %p',
+                    level=logging.DEBUG)
 
 class FeaturedFeedTriggerView(flask.views.MethodView):
     """Generic view for IFTT Triggers based on FeaturedFeeds."""
@@ -68,6 +75,7 @@ class FeaturedFeedTriggerView(flask.views.MethodView):
     def post(self):
         """Handle POST requests."""
         params = flask.request.get_json(force=True, silent=True) or {}
+        logging.info('%s: %s' % (self.__class__.__name__, params.get('trigger_identity')))
         limit = params.get('limit', 50)
         items = self.get_items()
         items = items[:limit]
@@ -103,6 +111,7 @@ class APIQueryTriggerView(flask.views.MethodView):
 
     def post(self):
         params = flask.request.get_json(force=True, silent=True) or {}
+        logging.info('%s: %s' % (self.__class__.__name__, params.get('trigger_identity')))
         limit = params.get('limit', 50)
         self.post_data = json.loads(flask.request.data)
         ret = self.get_results()
@@ -182,6 +191,7 @@ class HashtagsTriggerView(flask.views.MethodView):
 
     def post(self):
         params = flask.request.get_json(force=True, silent=True) or {}
+        logging.info('%s: %s' % (self.__class__.__name__, params.get('trigger_identity')))
         limit = params.get('limit', 50)
         self.post_data = json.loads(flask.request.data)
         ret = self.get_hashtags()
