@@ -32,7 +32,7 @@ import werkzeug.contrib.cache
 import logging
 
 from .utils import url_to_uuid5, utc_to_epoch, utc_to_iso8601, iso8601_to_epoch
-from .dal import get_hashtags
+from .dal import get_hashtags, get_all_hashtags
 
 __all__ = ('FeaturedFeedTriggerView',)
 
@@ -77,7 +77,8 @@ class FeaturedFeedTriggerView(flask.views.MethodView):
         """Handle POST requests."""
         self.params = flask.request.get_json(force=True, silent=True) or {}
         logging.info('%s: %s' %
-                    (self.__class__.__name__, self.params.get('trigger_identity')))
+                    (self.__class__.__name__,
+                     self.params.get('trigger_identity')))
         limit = self.params.get('limit', 50)
         items = self.get_items()
         items = items[:limit]
@@ -114,7 +115,8 @@ class APIQueryTriggerView(flask.views.MethodView):
     def post(self):
         self.params = flask.request.get_json(force=True, silent=True) or {}
         logging.info('%s: %s' %
-                    (self.__class__.__name__, self.params.get('trigger_identity')))
+                    (self.__class__.__name__,
+                     self.params.get('trigger_identity')))
         limit = self.params.get('limit', 50)
         ret = self.get_results()
         ret = ret[:limit]
@@ -193,8 +195,18 @@ class HashtagsTriggerView(flask.views.MethodView):
     def post(self):
         self.params = flask.request.get_json(force=True, silent=True) or {}
         logging.info('%s: %s' %
-                    (self.__class__.__name__, self.params.get('trigger_identity')))
+                    (self.__class__.__name__,
+                     self.params.get('trigger_identity')))
         limit = self.params.get('limit', 50)
         ret = self.get_hashtags()
         ret = ret[:limit]
         return flask.jsonify(data=ret)
+
+
+class AllHashtagsTriggerView(HashtagsTriggerView):
+
+    url_pattern = 'all_hashtags'
+
+    def get_hashtags(self):
+        resp = get_all_hashtags()
+        return map(self.parse_result, resp)

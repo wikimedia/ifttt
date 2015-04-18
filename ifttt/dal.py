@@ -23,19 +23,12 @@ import os
 import oursql
 
 DEFAULT_HOURS = 2
+DEFAULT_LANG = 'en'
 
 DB_CONFIG_PATH = os.path.expanduser('~/replica.my.cnf')
-TEMPLATES_PATH = 'templates'
 
 
-def get_hashtags(tag, lang='en', hours=DEFAULT_HOURS):
-    query = '''
-        SELECT *
-        FROM recentchanges
-        WHERE rc_type = 0
-        AND rc_timestamp > DATE_FORMAT(DATE_SUB(NOW(),
-                                       INTERVAL ? HOUR), '%Y%m%d%H%i%s')
-        AND rc_comment REGEXP ?'''
+def run_query(query, query_params, lang):
     db_title = lang + 'wiki_p'
     db_host = lang + 'wiki.labsdb'
     connection = oursql.connect(db=db_title,
@@ -43,6 +36,36 @@ def get_hashtags(tag, lang='en', hours=DEFAULT_HOURS):
                                 read_default_file=DB_CONFIG_PATH,
                                 charset=None)
     cursor = connection.cursor(oursql.DictCursor)
-    cursor.execute(query, (hours, '(^| )[#]{1}' + tag + '[[:>:]]'))
+    cursor.execute(query, query_params)
     ret = cursor.fetchall()
+    return ret
+
+
+def get_hashtags(tag, lang='en', hours=DEFAULT_HOURS):
+    if tag[0] == '#':
+        tag = tag[1:]
+    query = '''
+        SELECT *
+        FROM recentchanges
+        WHERE rc_type = 0
+        AND rc_timestamp > DATE_FORMAT(DATE_SUB(NOW(),
+                                       INTERVAL ? HOUR), '%Y%m%d%H%i%s')
+        AND rc_comment REGEXP ?'''
+    query_params = (hours, '(^|\s)[＃#]]{1}' + tag + '[[:>:]]')
+    ret = run_query(query, query_params, lang)
+    return ret
+
+
+def get_all_hashtags(land='en', hours=DEFAULT_HOURS):
+    if tag[0] == '#':
+        tag = tag[1:]
+    query = '''
+        SELECT *
+        FROM recentchanges
+        WHERE rc_type = 0
+        AND rc_timestamp > DATE_FORMAT(DATE_SUB(NOW(),
+                                       INTERVAL ? HOUR), '%Y%m%d%H%i%s')
+        AND rc_comment REGEXP ?'''
+    query_params = (hours, '(^|\s)[＃#]]{1}\w')
+    ret = run_query(query, query_params, lang)
     return ret
