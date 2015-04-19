@@ -18,8 +18,10 @@
   limitations under the License.
 
 """
+
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-from .ifttt import app
+
+from ifttt.core import app

@@ -19,6 +19,7 @@
 
 """
 import os
+import re
 import datetime
 import operator
 import urllib2
@@ -43,6 +44,24 @@ logging.basicConfig(filename=LOG_FILE,
                     format='%(asctime)s - %(message)s',
                     datefmt='%m/%d/%Y %I:%M:%S %p',
                     level=logging.DEBUG)
+
+# From boltons
+HASHTAG_RE = re.compile(r"(?:^|\s)[＃#]{1}(\w+)", re.UNICODE)
+
+
+def find_hashtags(string):
+    """Finds and returns all hashtags in a string, with the hashmark
+    removed. Supports full-width hashmarks for Asian languages and
+    does not false-positive on URL anchors.
+    >>> find_hashtags('#atag http://asite/#ananchor')
+    ['atag']
+    ``find_hashtags`` also works with unicode hashtags.
+    """
+
+    # the following works, doctest just struggles with it
+    # >>> find_hashtags(u"can't get enough of that dignity chicken #肯德基 woo")
+    # [u'\u80af\u5fb7\u57fa']
+    return HASHTAG_RE.findall(string)
 
 
 class FeaturedFeedTriggerView(flask.views.MethodView):
@@ -173,8 +192,10 @@ class HashtagsTriggerView(flask.views.MethodView):
     def parse_result(self, rev):
         date = datetime.datetime.strptime(rev['rc_timestamp'], '%Y%m%d%H%M%S')
         date = date.isoformat() + 'Z'
+        tags = find_hashtags(rev['rc_comment'])
+        tags = ' '.join(tags)
         ret = {
-            'hashtag': self.tag,
+            'hashtags': tags,
             'date': date,
             'url': 'https://%s/w/index.php?diff=%s&oldid=%s' %
                    (self.wiki,
