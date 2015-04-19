@@ -27,8 +27,7 @@ from .utils import select, snake_case
 from .views import (FeaturedFeedTriggerView,
                     APIQueryTriggerView,
                     DailyAPIQueryTriggerView,
-                    HashtagsTriggerView,
-                    AllHashtagsTriggerView)
+                    HashtagsTriggerView)
 
 
 app = flask.Flask(__name__)
@@ -183,7 +182,7 @@ class NewArticle(APIQueryTriggerView):
     def parse_result(self, rev):
         ret = {'date': rev['timestamp'],
                'url': 'https://%s/wiki/%s' %
-                      (self.wiki, rev['title']),
+                      (self.wiki, rev['title'].replace(' ', '_')),
                'user': rev['user'],
                'size': rev['newlen'] - rev['oldlen'],
                'comment': rev['comment'],
@@ -385,8 +384,7 @@ for view_class in (ArticleOfTheDay,
                    NewArticle,
                    ValidateArticleTitle,
                    ValidateUser,
-                   HashtagsTriggerView,
-                   AllHashtagsTriggerView):
+                   HashtagsTriggerView):
     slug = getattr(view_class, 'url_pattern', None)
     if not slug:
         slug = snake_case(view_class.__name__)

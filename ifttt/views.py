@@ -198,7 +198,8 @@ class HashtagsTriggerView(flask.views.MethodView):
         tags = find_hashtags(rev['rc_comment'])
         tags = ' '.join(tags)
         ret = {
-            'hashtags': tags,
+            'input_hashtag': self.tag,
+            'return_hashtags': tags,
             'date': date,
             'url': 'https://%s/w/index.php?diff=%s&oldid=%s' %
                    (self.wiki,
