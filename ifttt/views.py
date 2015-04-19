@@ -184,10 +184,13 @@ class HashtagsTriggerView(flask.views.MethodView):
     def get_hashtags(self):
         trigger_fields = self.params.get('triggerFields', {})
         self.tag = trigger_fields.get('hashtag')
-        if not self.tag:
+        if self.tag is None:
             flask.abort(400)
-        resp = get_hashtags(self.tag)
-        return map(self.parse_result, resp)
+        if self.tag == '':
+            res = get_all_hashtags()
+        else:
+            res = get_hashtags(self.tag)
+        return map(self.parse_result, res)
 
     def parse_result(self, rev):
         date = datetime.datetime.strptime(rev['rc_timestamp'], '%Y%m%d%H%M%S')
@@ -223,11 +226,3 @@ class HashtagsTriggerView(flask.views.MethodView):
         ret = ret[:limit]
         return flask.jsonify(data=ret)
 
-
-class AllHashtagsTriggerView(HashtagsTriggerView):
-
-    url_pattern = 'all_hashtags'
-
-    def get_hashtags(self):
-        resp = get_all_hashtags()
-        return map(self.parse_result, resp)
