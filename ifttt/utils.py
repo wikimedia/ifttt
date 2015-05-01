@@ -48,7 +48,7 @@ def url_to_uuid5(url):
 def utc_to_iso8601(struct_time):
     """Make a W3-style ISO 8601 UTC timestamp from a struct_time object."""
     struct_time = datetime.datetime.utcfromtimestamp(time.mktime(struct_time))
-    return struct_time.isoformat() + 'Z'
+    return struct_time.date().isoformat()
 
 
 def utc_to_epoch(struct_time):

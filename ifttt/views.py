@@ -25,6 +25,7 @@ import operator
 import urllib2
 from urllib import urlencode
 import json
+import time
 
 import feedparser
 import flask
@@ -67,7 +68,7 @@ def find_hashtags(string):
 class FeaturedFeedTriggerView(flask.views.MethodView):
     """Generic view for IFTT Triggers based on FeaturedFeeds."""
 
-    URL_FORMAT = 'http://{0.wiki}/w/api.php?action=featuredfeed&feed={0.feed}'
+    URL_FORMAT = 'https://{0.wiki}/w/api.php?action=featuredfeed&feed={0.feed}'
 
     def get_feed(self):
         """Fetch and parse the feature feed for this class."""
@@ -80,10 +81,17 @@ class FeaturedFeedTriggerView(flask.views.MethodView):
 
     def parse_entry(self, entry):
         """Parse a single feed entry into an IFTTT trigger item."""
-        id = url_to_uuid5(entry.id)
-        created_at = utc_to_iso8601(entry.published_parsed)
-        ts = utc_to_epoch(entry.published_parsed)
-        return {'created_at': created_at, 'meta': {'id': id, 'timestamp': ts}}
+        # Not sure why, but sometimes we get http entry IDs. If we
+        # don't have consistency between https/http, we get mutliple
+        # unique UUIDs for the same entry.
+        meta_id = url_to_uuid5(entry.id.replace('http:', 'https:'))
+        date = entry.published_parsed
+        created_at = utc_to_iso8601(date)
+        ts = utc_to_epoch(date)
+        return {'created_at': created_at, 
+                'entry_id': meta_id, 
+                'url': entry.id, 
+                'meta': {'id': meta_id, 'timestamp': ts}}
 
     def get_items(self):
         """Get the set of items for this trigger."""
@@ -192,14 +200,21 @@ class HashtagsTriggerView(flask.views.MethodView):
             res = get_hashtags(self.tag)
         return map(self.parse_result, res)
 
+    def filter_hashtags(self, revs):
+        not_tags = ['redirect', 'ifexist', 'if']
+        for not_tag in not_tags:
+            revs = [r for r in revs if not all(tag.lower() == not_tag for
+                                              tag in r['raw_tags'])]
+        return revs
+
     def parse_result(self, rev):
         date = datetime.datetime.strptime(rev['rc_timestamp'], '%Y%m%d%H%M%S')
         date = date.isoformat() + 'Z'
         tags = find_hashtags(rev['rc_comment'])
-        tags = ' '.join(tags)
         ret = {
+            'raw_tags': tags,
             'input_hashtag': self.tag,
-            'return_hashtags': tags,
+            'return_hashtags': ' '.join(tags),
             'date': date,
             'url': 'https://%s/w/index.php?diff=%s&oldid=%s' %
                    (self.wiki,
@@ -224,6 +239,7 @@ class HashtagsTriggerView(flask.views.MethodView):
                      self.params.get('trigger_identity')))
         limit = self.params.get('limit', 50)
         ret = self.get_hashtags()
+        ret = self.filter_hashtags(ret)
         ret = ret[:limit]
         return flask.jsonify(data=ret)
 
