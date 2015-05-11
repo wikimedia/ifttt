@@ -45,6 +45,7 @@ from .utils import (select,
 
 LOG_FILE = 'ifttt.log'
 CACHE_EXPIRATION = 5 * 60
+DEFAULT_LANG = 'en'
 
 cache = werkzeug.contrib.cache.SimpleCache()
 
@@ -161,10 +162,17 @@ class PictureOfTheDay(FeaturedFeedTriggerView):
 
 
 class ArticleOfTheDay(FeaturedFeedTriggerView):
-    """Trigger for English Wikipedia's Today's Featured Article."""
+    """Trigger for Wikipedia's Today's Featured Article."""
 
     feed = 'featured'
-    wiki = 'en.wikipedia.org'
+
+    def get_items(self):
+        trigger_fields = self.params.get('triggerFields', {})
+        self.lang = trigger_fields.get('lang', DEFAULT_LANG)
+        if self.lang == '':
+            self.lang = DEFAULT_LANG
+        self.wiki = '%s.wikipedia.org' % self.lang
+        return super(ArticleOfTheDay, self).get_items()
 
     def parse_entry(self, entry):
         """Scrape each AotD entry for its URL and title."""
@@ -177,10 +185,17 @@ class ArticleOfTheDay(FeaturedFeedTriggerView):
 
 
 class WordOfTheDay(FeaturedFeedTriggerView):
-    """Trigger for English Wiktionary's Word of the Day."""
+    """Trigger for Wiktionary's Word of the Day."""
 
     feed = 'wotd'
-    wiki = 'en.wiktionary.org'
+
+    def get_items(self):
+        trigger_fields = self.params.get('triggerFields', {})
+        self.lang = trigger_fields.get('lang', DEFAULT_LANG)
+        if self.lang == '':
+            self.lang = DEFAULT_LANG
+        self.wiki = '%s.wiktionary.org' % self.lang
+        return super(ArticleOfTheDay, self).get_items()
 
     def parse_entry(self, entry):
         """Scrape each WotD entry for the word, article URL, part of speech,
@@ -208,10 +223,10 @@ class NewArticle(APIQueryTriggerView):
                     'format': 'json'}
 
     def get_results(self):
-        trigger_fields = self.params.get('triggerFields', {'lang': 'en'})
-        self.lang = trigger_fields.get('lang')
+        trigger_fields = self.params.get('triggerFields', {})
+        self.lang = trigger_fields.get('lang', DEFAULT_LANG)
         if self.lang == '':
-            self.lang = 'en'
+            self.lang = DEFAULT_LANG
         self.wiki = '%s.wikipedia.org' % self.lang
         api_resp = self.get_query()
         try:
@@ -236,13 +251,14 @@ class NewHashtag(flask.views.MethodView):
     """Trigger for hashtags in the edit summary."""
 
     url_pattern = 'hashtag'
-    wiki = 'en.wikipedia.org'
 
     def get_hashtags(self):
         trigger_fields = self.params.get('triggerFields', {})
+        self.lang = trigger_fields.get('lang', DEFAULT_LANG)
+        if self.lang == '':
+            self.lang = DEFAULT_LANG
+        self.wiki = '%s.wikipedia.org' % self.lang
         self.tag = trigger_fields.get('hashtag')
-        if self.tag is None:
-            flask.abort(400)
         if self.tag == '':
             res = cache.get('allhashtags')
             if not res:
@@ -252,7 +268,9 @@ class NewHashtag(flask.views.MethodView):
             res = cache.get('hashtags-%s' % self.tag)
             if not res:
                 res = get_hashtags(self.tag)
-                cache.set('hashtags-%s' % self.tag, res, timeout=CACHE_EXPIRATION)
+                cache.set('hashtags-%s' % self.tag,
+                          res,
+                          timeout=CACHE_EXPIRATION)
         return map(self.parse_result, res)
 
     def filter_hashtags(self, revs):
@@ -298,7 +316,6 @@ class NewHashtag(flask.views.MethodView):
 class ArticleRevisions(APIQueryTriggerView):
     """Trigger for revisions to a specified article."""
 
-    wiki = 'en.wikipedia.org'
     query_params = {'action': 'query',
                     'prop': 'revisions',
                     'titles': None,
@@ -308,6 +325,10 @@ class ArticleRevisions(APIQueryTriggerView):
 
     def get_query(self):
         trigger_fields = self.params.get('triggerFields', {})
+        self.lang = trigger_fields.get('lang', DEFAULT_LANG)
+        if self.lang == '':
+            self.lang = DEFAULT_LANG
+        self.wiki = '%s.wikipedia.org' % self.lang
         self.query_params['titles'] = trigger_fields.get('title')
         if not self.query_params['titles']:
             flask.abort(400)
@@ -337,7 +358,6 @@ class ArticleRevisions(APIQueryTriggerView):
 class UserRevisions(APIQueryTriggerView):
     """Trigger for revisions from a specified user."""
 
-    wiki = 'en.wikipedia.org'
     query_params = {'action': 'query',
                     'list': 'usercontribs',
                     'ucuser': None,
@@ -347,6 +367,10 @@ class UserRevisions(APIQueryTriggerView):
 
     def get_query(self):
         trigger_fields = self.params.get('triggerFields', {})
+        self.lang = trigger_fields.get('lang', DEFAULT_LANG)
+        if self.lang == '':
+            self.lang = DEFAULT_LANG
+        self.wiki = '%s.wikipedia.org' % self.lang
         self.query_params['ucuser'] = trigger_fields.get('user')
         if not self.query_params['ucuser']:
             flask.abort(400)

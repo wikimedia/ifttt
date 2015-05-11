@@ -31,8 +31,6 @@ from .triggers import (ArticleOfTheDay,
                        NewArticle,
                        NewHashtag)
 
-from .validators import ValidateArticleTitle, ValidateUser
-
 
 app = flask.Flask(__name__)
 app.config.from_pyfile('../ifttt.cfg', silent=True)
@@ -81,21 +79,7 @@ def test_setup():
                 'user_revisions': {'user': 'Slaporte'},
                 'hashtag': {'hashtag': 'test'},
                 'new_article': {'lang': 'en'}
-            },
-            'triggerFieldValidations': {
-                'article_revisions': {
-                    'title': {
-                        'valid': 'Coffee',
-                        'invalid': 'ThisPageDoesNotExist'
-                    },
-                },
-                'user_revisions': {
-                    'user': {
-                        'valid': 'ClueBot',
-                        'invalid': 'ThisUserDoesNotExist'
-                    },
-                }
-            },
+            }
         }
     }
     return flask.jsonify(data=ret)
@@ -113,9 +97,7 @@ for view_class in (ArticleOfTheDay,
                    ArticleRevisions,
                    UserRevisions,
                    NewArticle,
-                   NewHashtag,
-                   ValidateArticleTitle,
-                   ValidateUser):
+                   NewHashtag):
     slug = getattr(view_class, 'url_pattern', None)
     if not slug:
         slug = snake_case(view_class.__name__)
