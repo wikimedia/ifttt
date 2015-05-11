@@ -168,7 +168,11 @@ class ArticleOfTheDay(FeaturedFeedTriggerView):
 
     def get_items(self):
         trigger_fields = self.params.get('triggerFields', {})
-        self.lang = trigger_fields.get('lang', DEFAULT_LANG)
+        if not trigger_fields:
+            flask.abort(400)
+        self.lang = trigger_fields.get('lang')
+        if not self.lang:
+            flask.abort(400)
         if self.lang == '':
             self.lang = DEFAULT_LANG
         self.wiki = '%s.wikipedia.org' % self.lang
@@ -191,11 +195,15 @@ class WordOfTheDay(FeaturedFeedTriggerView):
 
     def get_items(self):
         trigger_fields = self.params.get('triggerFields', {})
-        self.lang = trigger_fields.get('lang', DEFAULT_LANG)
+        if not trigger_fields:
+            flask.abort(400)
+        self.lang = trigger_fields.get('lang')
+        if not self.lang:
+            flask.abort(400)  # required per IFTTT spec
         if self.lang == '':
             self.lang = DEFAULT_LANG
         self.wiki = '%s.wiktionary.org' % self.lang
-        return super(ArticleOfTheDay, self).get_items()
+        return super(WordOfTheDay, self).get_items()
 
     def parse_entry(self, entry):
         """Scrape each WotD entry for the word, article URL, part of speech,
@@ -224,7 +232,11 @@ class NewArticle(APIQueryTriggerView):
 
     def get_results(self):
         trigger_fields = self.params.get('triggerFields', {})
-        self.lang = trigger_fields.get('lang', DEFAULT_LANG)
+        if not trigger_fields:
+            flask.abort(400)
+        self.lang = trigger_fields.get('lang')
+        if not self.lang:
+            flask.abort(400)
         if self.lang == '':
             self.lang = DEFAULT_LANG
         self.wiki = '%s.wikipedia.org' % self.lang
@@ -254,7 +266,11 @@ class NewHashtag(flask.views.MethodView):
 
     def get_hashtags(self):
         trigger_fields = self.params.get('triggerFields', {})
-        self.lang = trigger_fields.get('lang', DEFAULT_LANG)
+        if not trigger_fields:
+            flask.abort(400)
+        self.lang = trigger_fields.get('lang')
+        if not self.lang:
+            flask.abort(400)
         if self.lang == '':
             self.lang = DEFAULT_LANG
         self.wiki = '%s.wikipedia.org' % self.lang
@@ -325,7 +341,11 @@ class ArticleRevisions(APIQueryTriggerView):
 
     def get_query(self):
         trigger_fields = self.params.get('triggerFields', {})
-        self.lang = trigger_fields.get('lang', DEFAULT_LANG)
+        if not trigger_fields:
+            flask.abort(400)
+        self.lang = trigger_fields.get('lang')
+        if not self.lang:
+            flask.abort(400)
         if self.lang == '':
             self.lang = DEFAULT_LANG
         self.wiki = '%s.wikipedia.org' % self.lang
@@ -367,7 +387,11 @@ class UserRevisions(APIQueryTriggerView):
 
     def get_query(self):
         trigger_fields = self.params.get('triggerFields', {})
-        self.lang = trigger_fields.get('lang', DEFAULT_LANG)
+        if not trigger_fields:
+            flask.abort(400)
+        self.lang = trigger_fields.get('lang')
+        if not self.lang:
+            flask.abort(400)
         if self.lang == '':
             self.lang = DEFAULT_LANG
         self.wiki = '%s.wikipedia.org' % self.lang

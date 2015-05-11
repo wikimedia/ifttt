@@ -75,9 +75,11 @@ def test_setup():
     ret = {
         'samples': {
             'triggers': {
-                'article_revisions': {'title': 'Coffee'},
-                'user_revisions': {'user': 'Slaporte'},
-                'hashtag': {'hashtag': 'test'},
+                'article_of_the_day': {'lang': 'en'},
+                'word_of_the_day': {'lang': 'en'},
+                'article_revisions': {'title': 'Coffee', 'lang': 'en'},
+                'user_revisions': {'user': 'Slaporte', 'lang': 'en'},
+                'hashtag': {'hashtag': 'test', 'lang': 'en'},
                 'new_article': {'lang': 'en'}
             }
         }
