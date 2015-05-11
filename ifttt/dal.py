@@ -64,6 +64,6 @@ def get_all_hashtags(lang='en', hours=DEFAULT_HOURS):
         AND rc_timestamp > DATE_FORMAT(DATE_SUB(NOW(),
                                        INTERVAL ? HOUR), '%Y%m%d%H%i%s')
         AND rc_comment REGEXP ?'''
-    query_params = (hours, '(^| )#[[:alpha:]]{1}[[:alnum:]]*[[:>:]]')
+    query_params = (hours, '(^| )#[[:alpha:]]{2}[[:alnum:]]*[[:>:]]')
     ret = run_query(query, query_params, lang)
     return ret

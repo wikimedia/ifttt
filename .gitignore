@@ -11,3 +11,4 @@ __pycache__
 venv
 ifttt.cfg
 *.log
+*.py#

@@ -199,7 +199,6 @@ class WordOfTheDay(FeaturedFeedTriggerView):
 class NewArticle(APIQueryTriggerView):
     """Trigger for each new article."""
 
-    wiki = 'en.wikipedia.org'
     query_params = {'action': 'query',
                     'list': 'recentchanges',
                     'rctype': 'new',
@@ -209,6 +208,11 @@ class NewArticle(APIQueryTriggerView):
                     'format': 'json'}
 
     def get_results(self):
+        trigger_fields = self.params.get('triggerFields', {'lang': 'en'})
+        self.lang = trigger_fields.get('lang')
+        if self.lang == '':
+            self.lang = 'en'
+        self.wiki = '%s.wikipedia.org' % self.lang
         api_resp = self.get_query()
         try:
             pages = api_resp['query']['recentchanges']
@@ -240,9 +244,15 @@ class NewHashtag(flask.views.MethodView):
         if self.tag is None:
             flask.abort(400)
         if self.tag == '':
-            res = get_all_hashtags()
+            res = cache.get('allhashtags')
+            if not res:
+                res = get_all_hashtags()
+                cache.set('allhashtags', res, timeout=CACHE_EXPIRATION)
         else:
-            res = get_hashtags(self.tag)
+            res = cache.get('hashtags-%s' % self.tag)
+            if not res:
+                res = get_hashtags(self.tag)
+                cache.set('hashtags-%s' % self.tag, res, timeout=CACHE_EXPIRATION)
         return map(self.parse_result, res)
 
     def filter_hashtags(self, revs):
@@ -256,25 +266,21 @@ class NewHashtag(flask.views.MethodView):
         date = datetime.datetime.strptime(rev['rc_timestamp'], '%Y%m%d%H%M%S')
         date = date.isoformat() + 'Z'
         tags = find_hashtags(rev['rc_comment'])
-        ret = {
-            'raw_tags': tags,
-            'input_hashtag': self.tag,
-            'return_hashtags': ' '.join(tags),
-            'date': date,
-            'url': 'https://%s/w/index.php?diff=%s&oldid=%s' %
-                   (self.wiki,
-                    int(rev['rc_this_oldid']),
-                    int(rev['rc_last_oldid'])),
-            'user': rev['rc_user_text'],
-            'size': rev['rc_new_len'] - rev['rc_old_len'],
-            'comment': rev['rc_comment'],
-            'title': rev['rc_title']
-        }
+        ret = {'raw_tags': tags,
+               'input_hashtag': self.tag,
+               'return_hashtags': ' '.join(tags),
+               'date': date,
+               'url': 'https://%s/w/index.php?diff=%s&oldid=%s' %
+                      (self.wiki,
+                       int(rev['rc_this_oldid']),
+                       int(rev['rc_last_oldid'])),
+               'user': rev['rc_user_text'],
+               'size': rev['rc_new_len'] - rev['rc_old_len'],
+               'comment': rev['rc_comment'],
+               'title': rev['rc_title']}
         ret['created_at'] = date
-        ret['meta'] = {
-            'id': url_to_uuid5(ret['url']),
-            'timestamp': iso8601_to_epoch(date)
-        }
+        ret['meta'] = {'id': url_to_uuid5(ret['url']),
+                       'timestamp': iso8601_to_epoch(date)}
         return ret
 
     def post(self):

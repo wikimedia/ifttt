@@ -79,7 +79,8 @@ def test_setup():
             'triggers': {
                 'article_revisions': {'title': 'Coffee'},
                 'user_revisions': {'user': 'Slaporte'},
-                'hashtag': {'hashtag': 'test'}
+                'hashtag': {'hashtag': 'test'},
+                'new_article': {'lang': 'en'}
             },
             'triggerFieldValidations': {
                 'article_revisions': {

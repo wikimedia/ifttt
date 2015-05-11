@@ -63,12 +63,12 @@ def iso8601_to_epoch(iso_time):
 
 def is_valid_ip(address):
     try:
-        socket.inet_aton(username)
+        socket.inet_aton(address)
         return True
     except socket.error:
         pass
     try:
-        socket.inet_pton(socket.AF_INET6, username)
+        socket.inet_pton(socket.AF_INET6, address)
         return True
     except socket.error:
         pass
