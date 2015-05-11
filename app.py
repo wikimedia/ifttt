@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
+
 from ifttt import app
-#app.debug = True
-#if __name__ == '__main__':
-#    app.run(debug=True)
+
+# if __name__ == '__main__':
+#     app.debug = True
+#     app.run(debug=True)

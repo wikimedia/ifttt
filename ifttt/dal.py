@@ -25,7 +25,7 @@ import oursql
 DEFAULT_HOURS = 2
 DEFAULT_LANG = 'en'
 
-DB_CONFIG_PATH = os.path.expanduser('~/replica.my.cnf')
+DB_CONFIG_PATH = os.path.expanduser('~/replica.my.cnf')  # Available by default on Labs
 
 
 def run_query(query, query_params, lang):

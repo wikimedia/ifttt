@@ -1,7 +1,21 @@
-Wikipedia channel for IFTTT
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Wikipedia channel for IFTTT
 
-Copyright 2015 Ori Livneh <ori@wikimedia.org>
+An [IFTTT](https://ifttt.com/recipes) channel built for [Wikimedia Tool Labs](http://tools.wmflabs.org/).
+
+It currently supports the following triggers:
+
+ - Picture of the day
+ - Article of the day
+ - Word of the day
+ - New article
+ - Hashtag in an article edit summary
+ - Updates to specified article
+ - Updates from specified user
+
+# License
+
+Copyright 2015 Ori Livneh <ori@wikimedia.org>,
+               Stephen LaPorte <stephen.laporte@gmail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

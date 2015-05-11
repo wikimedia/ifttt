@@ -3,7 +3,8 @@
   Wikipedia channel for IFTTT
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  Copyright 2015 Ori Livneh <ori@wikimedia.org>
+  Copyright 2015 Ori Livneh <ori@wikimedia.org>,
+                 Stephen LaPorte <stephen.laporte@gmail.com>
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -18,16 +19,19 @@
   limitations under the License.
 
 """
-import flask
-import lxml.html
-import json
-import socket
 
-from .utils import select, snake_case
-from .views import (FeaturedFeedTriggerView,
-                    APIQueryTriggerView,
-                    DailyAPIQueryTriggerView,
-                    HashtagsTriggerView)
+import flask
+
+from .utils import snake_case
+from .triggers import (ArticleOfTheDay,
+                       PictureOfTheDay,
+                       WordOfTheDay,
+                       ArticleRevisions,
+                       UserRevisions,
+                       NewArticle,
+                       NewHashtag)
+
+from .validators import ValidateArticleTitle, ValidateUser
 
 
 app = flask.Flask(__name__)
@@ -102,289 +106,15 @@ def status():
     return ''
 
 
-class PictureOfTheDay(FeaturedFeedTriggerView):
-    """Trigger view for Wikimedia Commons Picture of the Day"""
-
-    feed = 'potd'
-    wiki = 'commons.wikimedia.org'
-
-    def parse_entry(self, entry):
-        """Scrape each PotD entry for its description and URL."""
-        item = super(PictureOfTheDay, self).parse_entry(entry)
-        summary = lxml.html.fromstring(entry.summary)
-        image_node = select(summary, 'a.image img')
-        file_page_node = select(summary, 'a.image')
-        thumb_url = image_node.get('src')
-        width = image_node.get('width')  # 300px per MediaWiki:Ffeed-potd-page
-        image_url = thumb_url.rsplit('/' + width, 1)[0].replace('thumb/', '')
-        desc_node = select(summary, '.description.en')
-        item['image_url'] = image_url
-        item['filepage_url'] = file_page_node.get('href')
-        item['description'] = desc_node.text_content().strip()
-        return item
-
-
-class ArticleOfTheDay(FeaturedFeedTriggerView):
-    """Trigger view for English Wikipedia's Today's Featured Article."""
-
-    feed = 'featured'
-    wiki = 'en.wikipedia.org'
-
-    def parse_entry(self, entry):
-        """Scrape each AotD entry for its URL and title."""
-        item = super(ArticleOfTheDay, self).parse_entry(entry)
-        summary = lxml.html.fromstring(entry.summary)
-        read_more = select(summary, 'p:first-of-type > a:last-of-type')
-        item['url'] = read_more.get('href')
-        item['title'] = read_more.get('title')
-        return item
-
-
-class WordOfTheDay(FeaturedFeedTriggerView):
-    """Trigger view for English Wiktionary's Word of the Day."""
-
-    feed = 'wotd'
-    wiki = 'en.wiktionary.org'
-
-    def parse_entry(self, entry):
-        """Scrape each WotD entry for the word, article URL, part of speech,
-        and definition."""
-        item = super(WordOfTheDay, self).parse_entry(entry)
-        summary = lxml.html.fromstring(entry.summary)
-        div = summary.get_element_by_id('WOTD-rss-description')
-        anchor = summary.get_element_by_id('WOTD-rss-title').getparent()
-        item['word'] = anchor.get('title')
-        item['url'] = anchor.get('href')
-        item['part_of_speech'] = anchor.getparent().getnext().text_content()
-        item['definition'] = div.text_content().strip()
-        return item
-
-
-class NewArticle(APIQueryTriggerView):
-
-    wiki = 'en.wikipedia.org'
-    query_params = {'action': 'query',
-                    'list': 'recentchanges',
-                    'rctype': 'new',
-                    'rclimit': 50,
-                    'rcnamespace': 0,
-                    'rcprop': 'title|ids|timestamp|user|sizes|comment',
-                    'format': 'json'}
-
-    def get_results(self):
-        api_resp = self.get_query()
-        try:
-            pages = api_resp['query']['recentchanges']
-        except KeyError:
-            return []
-        return map(self.parse_result, pages)
-
-    def parse_result(self, rev):
-        ret = {'date': rev['timestamp'],
-               'url': 'https://%s/wiki/%s' %
-                      (self.wiki, rev['title'].replace(' ', '_')),
-               'user': rev['user'],
-               'size': rev['newlen'] - rev['oldlen'],
-               'comment': rev['comment'],
-               'title': rev['title']}
-        ret.update(super(NewArticle, self).parse_result(ret))
-        return ret
-
-
-class ArticleRevisions(APIQueryTriggerView):
-
-    wiki = 'en.wikipedia.org'
-    query_params = {'action': 'query',
-                    'prop': 'revisions',
-                    'titles': None,
-                    'rvlimit': 50,
-                    'rvprop': 'ids|timestamp|user|size|comment',
-                    'format': 'json'}
-
-    def get_query(self):
-        trigger_fields = self.params.get('triggerFields', {})
-        self.query_params['titles'] = trigger_fields.get('title')
-        if not self.query_params['titles']:
-            flask.abort(400)
-        ret = super(ArticleRevisions, self).get_query()
-        return ret
-
-    def get_results(self):
-        api_resp = self.get_query()
-        try:
-            page_id = api_resp['query']['pages'].keys()[0]
-            revisions = api_resp['query']['pages'][page_id]['revisions']
-        except KeyError:
-            return []
-        return map(self.parse_result, revisions)
-
-    def parse_result(self, revision):
-        ret = {'date': revision['timestamp'],
-               'url': 'https://%s/w/index.php?diff=%s&oldid=%s' %
-                      (self.wiki, revision['revid'], revision['parentid']),
-               'user': revision['user'],
-               'size': revision['size'],
-               'comment': revision['comment'],
-               'title': self.params['triggerFields']['title']}
-        ret.update(super(ArticleRevisions, self).parse_result(ret))
-        return ret
-
-
-class UserRevisions(APIQueryTriggerView):
-
-    wiki = 'en.wikipedia.org'
-    query_params = {'action': 'query',
-                    'list': 'usercontribs',
-                    'ucuser': None,
-                    'uclimit': 50,
-                    'ucprop': 'ids|timestamp|title|size|comment',
-                    'format': 'json'}
-
-    def get_query(self):
-        trigger_fields = self.params.get('triggerFields', {})
-        self.query_params['ucuser'] = trigger_fields.get('user')
-        if not self.query_params['ucuser']:
-            flask.abort(400)
-        ret = super(UserRevisions, self).get_query()
-        return ret
-
-    def get_results(self):
-        api_resp = self.get_query()
-        try:
-            revisions = api_resp['query']['usercontribs']
-        except KeyError:
-            return []
-        return map(self.parse_result, revisions)
-
-    def parse_result(self, contrib):
-        ret = {'date': contrib['timestamp'],
-               'url': 'https://%s/w/index.php?diff=%s&oldid=%s' %
-                      (self.wiki, contrib['revid'], contrib['parentid']),
-               'user': self.params['triggerFields']['user'],
-               'size': contrib['size'],
-               'comment': contrib['comment'],
-               'title': contrib['user']}
-        ret.update(super(UserRevisions, self).parse_result(ret))
-        return ret
-
-
-class RandomWikipediaArticleOfTheDay(DailyAPIQueryTriggerView):
-    """This trigger doesn't exactly fit IFTTT's model, so I'm leaving it
-       inactive for now."""
-
-    wiki = 'en.wikipedia.org'
-    query_params = {'action': 'query',
-                    'list': 'random',
-                    'rnnamespace': 0,
-                    'rnlimit': 1,
-                    'format': 'json'}
-
-    def parse_query(self):
-        rand_query = super(RandomWikipediaArticleOfTheDay, self).parse_query()
-        page_title = rand_query['query']['random'][0]['title']
-        url = 'https://%s/wiki/%s' % (self.wiki, page_title.replace(' ', '_'))
-        rand_query['article_title'] = page_title
-        rand_query['article_url'] = url
-        rand_query.pop('query', None)
-        rand_query.pop('published_parsed', None)
-        rand_query.pop('warnings', None)
-        return rand_query
-
-
-class ValidateArticleTitle(APIQueryTriggerView):
-
-    url_pattern = 'article_revisions/fields/title/validate'
-    wiki = 'en.wikipedia.org'
-    query_params = {'action': 'query',
-                    'prop': 'info',
-                    'titles': None,
-                    'format': 'json'}
-
-    def get_query(self):
-        self.query_params['titles'] = self.params.get('value')
-        if not self.query_params['titles']:
-            flask.abort(400)
-        ret = super(ValidateArticleTitle, self).get_query()
-        return ret
-
-    def check_page(self):
-        api_resp = self.get_query()
-        page_ids = api_resp['query']['pages'].keys()
-        if int(page_ids[0]) > 0:
-            return True
-        return False
-
-    def post(self):
-        self.params = flask.request.get_json(force=True, silent=True) or {}
-        exists = self.check_page()
-        title = self.query_params['titles']
-        ret = {
-            'valid': exists
-        }
-        if not exists:
-            ret['message'] = ('A Wikipedia article on %s does not (yet)'
-                              ' exist (go write it!)' % title)
-        return flask.jsonify(data=ret)
-
-
-class ValidateUser(APIQueryTriggerView):
-
-    url_pattern = 'user_revisions/fields/user/validate'
-    wiki = 'en.wikipedia.org'
-    query_params = {'action': 'query',
-                    'list': 'users',
-                    'ususers': None,
-                    'format': 'json'}
-
-    def get_query(self):
-        self.query_params['ususers'] = self.params.get('value')
-        if not self.query_params['ususers']:
-            flask.abort(400)
-        ret = super(ValidateUser, self).get_query()
-        return ret
-
-    def check_user(self):
-        api_resp = self.get_query()
-        page_ids = api_resp['query']['users']
-        if page_ids[0].get('userid'):
-            return True
-        # The MW API doesn't validate unregistered users,
-        # so the next few lines allow any valid IP address
-        username = self.query_params['ususers']
-        try:
-            socket.inet_aton(username)
-            return True
-        except socket.error:
-            pass
-        try:
-            socket.inet_pton(socket.AF_INET6, username)
-            return True
-        except socket.error:
-            pass
-        return False
-
-    def post(self):
-        self.params = flask.request.get_json(force=True, silent=True) or {}
-        exists = self.check_user()
-        title = self.query_params['ususers']
-        ret = {
-            'valid': exists
-        }
-        if not exists:
-            ret['message'] = ('There is no Wikipedian named %s'
-                              % title)
-        return flask.jsonify(data=ret)
-
-
 for view_class in (ArticleOfTheDay,
                    PictureOfTheDay,
                    WordOfTheDay,
                    ArticleRevisions,
                    UserRevisions,
                    NewArticle,
+                   NewHashtag,
                    ValidateArticleTitle,
-                   ValidateUser,
-                   HashtagsTriggerView):
+                   ValidateUser):
     slug = getattr(view_class, 'url_pattern', None)
     if not slug:
         slug = snake_case(view_class.__name__)
