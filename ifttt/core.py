@@ -31,6 +31,13 @@ from .triggers import (ArticleOfTheDay,
                        NewArticle,
                        NewHashtag)
 
+ALL_TRIGGERS = [ArticleOfTheDay,
+                PictureOfTheDay,
+                WordOfTheDay,
+                ArticleRevisions,
+                UserRevisions,
+                NewArticle,
+                NewHashtag]
 
 app = flask.Flask(__name__)
 app.config.from_pyfile('../ifttt.cfg', silent=True)
@@ -72,18 +79,11 @@ def validate_channel_key():
 @app.route('/v1/test/setup', methods=['POST'])
 def test_setup():
     """Required by the IFTTT endpoint test suite."""
-    ret = {
-        'samples': {
-            'triggers': {
-                'article_of_the_day': {'lang': 'en'},
-                'word_of_the_day': {'lang': 'en'},
-                'article_revisions': {'title': 'Coffee', 'lang': 'en'},
-                'user_revisions': {'user': 'Slaporte', 'lang': 'en'},
-                'hashtag': {'hashtag': 'test', 'lang': 'en'},
-                'new_article': {'lang': 'en'}
-            }
-        }
-    }
+    ret = {'samples': {'triggers': {}}}
+    for trigger in ALL_TRIGGERS:
+        trigger_name = snake_case(trigger.__name__)
+        if trigger.fields:
+            ret['samples']['triggers'][trigger_name] = trigger.fields
     return flask.jsonify(data=ret)
 
 
@@ -93,13 +93,7 @@ def status():
     return ''
 
 
-for view_class in (ArticleOfTheDay,
-                   PictureOfTheDay,
-                   WordOfTheDay,
-                   ArticleRevisions,
-                   UserRevisions,
-                   NewArticle,
-                   NewHashtag):
+for view_class in ALL_TRIGGERS:
     slug = getattr(view_class, 'url_pattern', None)
     if not slug:
         slug = snake_case(view_class.__name__)

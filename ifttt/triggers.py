@@ -47,6 +47,8 @@ LOG_FILE = 'ifttt.log'
 CACHE_EXPIRATION = 5 * 60
 DEFAULT_LANG = 'en'
 
+DEFAULT_RESP_LIMIT = 50  # IFTTT spec
+
 cache = werkzeug.contrib.cache.SimpleCache()
 
 logging.basicConfig(filename=LOG_FILE,
@@ -55,7 +57,32 @@ logging.basicConfig(filename=LOG_FILE,
                     level=logging.DEBUG)
 
 
-class FeaturedFeedTriggerView(flask.views.MethodView):
+class BaseTriggerView(flask.views.MethodView):
+
+    fields = {}
+
+    def get_data(self):
+        pass
+
+    def post(self):
+        """Handle POST requests."""
+        self.params = flask.request.get_json(force=True, silent=True) or {}
+        limit = self.params.get('limit', DEFAULT_RESP_LIMIT)
+        trigger_identity = self.params.get('trigger_identity')
+        trigger_values = self.params.get('triggerFields', {})
+        for field, default_value in self.fields.items():
+            self.fields[field] = trigger_values.get(field)
+            if self.fields[field] == '' and default_value is not 'test':
+                self.fields[field] = default_value
+            if not self.fields[field]:
+                flask.abort(400)
+        logging.info('%s: %s' % (self.__class__.__name__, trigger_identity))
+        data = self.get_data()
+        data = data[:limit]
+        return flask.jsonify(data=data)
+
+
+class BaseFeaturedFeedTriggerView(BaseTriggerView):
     """Generic view for IFTT Triggers based on FeaturedFeeds."""
 
     _base_url = 'https://{0.wiki}/w/api.php?action=featuredfeed&feed={0.feed}'
@@ -83,26 +110,15 @@ class FeaturedFeedTriggerView(flask.views.MethodView):
                 'url': entry.id,
                 'meta': {'id': meta_id, 'timestamp': ts}}
 
-    def get_items(self):
+    def get_data(self):
         """Get the set of items for this trigger."""
         feed = self.get_feed()
         feed.entries.sort(key=operator.attrgetter('published_parsed'),
                           reverse=True)
         return map(self.parse_entry, feed.entries)
 
-    def post(self):
-        """Handle POST requests."""
-        self.params = flask.request.get_json(force=True, silent=True) or {}
-        logging.info('%s: %s' %
-                    (self.__class__.__name__,
-                     self.params.get('trigger_identity')))
-        limit = self.params.get('limit', 50)
-        items = self.get_items()
-        items = items[:limit]
-        return flask.jsonify(data=items)
 
-
-class APIQueryTriggerView(flask.views.MethodView):
+class BaseAPIQueryTriggerView(BaseTriggerView):
     """Generic view for IFTT Triggers based on API MediaWiki Queries."""
 
     _base_url = 'http://{0.wiki}/w/api.php'
@@ -124,22 +140,12 @@ class APIQueryTriggerView(flask.views.MethodView):
         return {'created_at': created_at,
                 'meta': {'id': meta_id, 'timestamp': ts}}
 
-    def get_results(self):
+    def get_data(self):
         resp = self.get_query()
         return map(self.parse_result, resp)
 
-    def post(self):
-        self.params = flask.request.get_json(force=True, silent=True) or {}
-        logging.info('%s: %s' %
-                    (self.__class__.__name__,
-                     self.params.get('trigger_identity')))
-        limit = self.params.get('limit', 50)
-        ret = self.get_results()
-        ret = ret[:limit]
-        return flask.jsonify(data=ret)
 
-
-class PictureOfTheDay(FeaturedFeedTriggerView):
+class PictureOfTheDay(BaseFeaturedFeedTriggerView):
     """Trigger for Wikimedia Commons Picture of the Day"""
 
     feed = 'potd'
@@ -161,21 +167,14 @@ class PictureOfTheDay(FeaturedFeedTriggerView):
         return item
 
 
-class ArticleOfTheDay(FeaturedFeedTriggerView):
+class ArticleOfTheDay(BaseFeaturedFeedTriggerView):
     """Trigger for Wikipedia's Today's Featured Article."""
 
+    fields = {'lang': DEFAULT_LANG}
     feed = 'featured'
 
     def get_items(self):
-        trigger_fields = self.params.get('triggerFields', {})
-        if not trigger_fields:
-            flask.abort(400)
-        self.lang = trigger_fields.get('lang')
-        if not self.lang:
-            flask.abort(400)
-        if self.lang == '':
-            self.lang = DEFAULT_LANG
-        self.wiki = '%s.wikipedia.org' % self.lang
+        self.wiki = '%s.wikipedia.org' % self.fields['lang']
         return super(ArticleOfTheDay, self).get_items()
 
     def parse_entry(self, entry):
@@ -188,21 +187,14 @@ class ArticleOfTheDay(FeaturedFeedTriggerView):
         return item
 
 
-class WordOfTheDay(FeaturedFeedTriggerView):
+class WordOfTheDay(BaseFeaturedFeedTriggerView):
     """Trigger for Wiktionary's Word of the Day."""
 
+    fields = {'lang': DEFAULT_LANG}
     feed = 'wotd'
 
     def get_items(self):
-        trigger_fields = self.params.get('triggerFields', {})
-        if not trigger_fields:
-            flask.abort(400)
-        self.lang = trigger_fields.get('lang')
-        if not self.lang:
-            flask.abort(400)  # required per IFTTT spec
-        if self.lang == '':
-            self.lang = DEFAULT_LANG
-        self.wiki = '%s.wiktionary.org' % self.lang
+        self.wiki = '%s.wiktionary.org' % self.fields['lang']
         return super(WordOfTheDay, self).get_items()
 
     def parse_entry(self, entry):
@@ -219,9 +211,10 @@ class WordOfTheDay(FeaturedFeedTriggerView):
         return item
 
 
-class NewArticle(APIQueryTriggerView):
+class NewArticle(BaseAPIQueryTriggerView):
     """Trigger for each new article."""
 
+    fields = {'lang': DEFAULT_LANG}
     query_params = {'action': 'query',
                     'list': 'recentchanges',
                     'rctype': 'new',
@@ -230,16 +223,8 @@ class NewArticle(APIQueryTriggerView):
                     'rcprop': 'title|ids|timestamp|user|sizes|comment',
                     'format': 'json'}
 
-    def get_results(self):
-        trigger_fields = self.params.get('triggerFields', {})
-        if not trigger_fields:
-            flask.abort(400)
-        self.lang = trigger_fields.get('lang')
-        if not self.lang:
-            flask.abort(400)
-        if self.lang == '':
-            self.lang = DEFAULT_LANG
-        self.wiki = '%s.wikipedia.org' % self.lang
+    def get_query(self):
+        self.wiki = '%s.wikipedia.org' % self.fields['lang']
         api_resp = self.get_query()
         try:
             pages = api_resp['query']['recentchanges']
@@ -259,21 +244,14 @@ class NewArticle(APIQueryTriggerView):
         return ret
 
 
-class NewHashtag(flask.views.MethodView):
+class NewHashtag(BaseTriggerView):
     """Trigger for hashtags in the edit summary."""
 
+    fields = {'lang': DEFAULT_LANG, 'hashtag': 'test'}
     url_pattern = 'hashtag'
 
-    def get_hashtags(self):
-        trigger_fields = self.params.get('triggerFields', {})
-        if not trigger_fields:
-            flask.abort(400)
-        self.lang = trigger_fields.get('lang')
-        if not self.lang:
-            flask.abort(400)
-        if self.lang == '':
-            self.lang = DEFAULT_LANG
-        self.wiki = '%s.wikipedia.org' % self.lang
+    def get_data(self):
+        self.wiki = '%s.wikipedia.org' % self.fields['lang']
         self.tag = trigger_fields.get('hashtag')
         if self.tag == '':
             res = cache.get('allhashtags')
@@ -287,14 +265,7 @@ class NewHashtag(flask.views.MethodView):
                 cache.set('hashtags-%s' % self.tag,
                           res,
                           timeout=CACHE_EXPIRATION)
-        return map(self.parse_result, res)
-
-    def filter_hashtags(self, revs):
-        not_tags = ['redirect', 'ifexist', 'if']
-        for not_tag in not_tags:
-            revs = [r for r in revs if not all(tag.lower() == not_tag for
-                    tag in r['raw_tags'])]
-        return revs
+        return filter(self.validate_tags, map(self.parse_result, res))
 
     def parse_result(self, rev):
         date = datetime.datetime.strptime(rev['rc_timestamp'], '%Y%m%d%H%M%S')
@@ -317,21 +288,18 @@ class NewHashtag(flask.views.MethodView):
                        'timestamp': iso8601_to_epoch(date)}
         return ret
 
-    def post(self):
-        self.params = flask.request.get_json(force=True, silent=True) or {}
-        logging.info('%s: %s' %
-                    (self.__class__.__name__,
-                     self.params.get('trigger_identity')))
-        limit = self.params.get('limit', 50)
-        ret = self.get_hashtags()
-        ret = self.filter_hashtags(ret)
-        ret = ret[:limit]
-        return flask.jsonify(data=ret)
+    def validate_tags(self, rev):
+        _not_tags = ['redirect', 'ifexist', 'if']
+        if set(rev['raw_tags']) - set(_not_tags):
+            return True
+        else:
+            return False
 
 
-class ArticleRevisions(APIQueryTriggerView):
+class ArticleRevisions(BaseAPIQueryTriggerView):
     """Trigger for revisions to a specified article."""
 
+    fields = {'lang': DEFAULT_LANG, 'title': 'Coffee'}
     query_params = {'action': 'query',
                     'prop': 'revisions',
                     'titles': None,
@@ -340,21 +308,11 @@ class ArticleRevisions(APIQueryTriggerView):
                     'format': 'json'}
 
     def get_query(self):
-        trigger_fields = self.params.get('triggerFields', {})
-        if not trigger_fields:
-            flask.abort(400)
-        self.lang = trigger_fields.get('lang')
-        if not self.lang:
-            flask.abort(400)
-        if self.lang == '':
-            self.lang = DEFAULT_LANG
-        self.wiki = '%s.wikipedia.org' % self.lang
-        self.query_params['titles'] = trigger_fields.get('title')
-        if not self.query_params['titles']:
-            flask.abort(400)
+        self.wiki = '%s.wikipedia.org' % self.fields['lang']
+        self.query_params['titles'] = self.fields['title']
         return super(ArticleRevisions, self).get_query()
 
-    def get_results(self):
+    def get_data(self):
         api_resp = self.get_query()
         try:
             page_id = api_resp['query']['pages'].keys()[0]
@@ -375,9 +333,10 @@ class ArticleRevisions(APIQueryTriggerView):
         return ret
 
 
-class UserRevisions(APIQueryTriggerView):
+class UserRevisions(BaseAPIQueryTriggerView):
     """Trigger for revisions from a specified user."""
 
+    fields = {'lang': DEFAULT_LANG, 'user': 'ClueBot'}
     query_params = {'action': 'query',
                     'list': 'usercontribs',
                     'ucuser': None,
@@ -386,21 +345,11 @@ class UserRevisions(APIQueryTriggerView):
                     'format': 'json'}
 
     def get_query(self):
-        trigger_fields = self.params.get('triggerFields', {})
-        if not trigger_fields:
-            flask.abort(400)
-        self.lang = trigger_fields.get('lang')
-        if not self.lang:
-            flask.abort(400)
-        if self.lang == '':
-            self.lang = DEFAULT_LANG
-        self.wiki = '%s.wikipedia.org' % self.lang
-        self.query_params['ucuser'] = trigger_fields.get('user')
-        if not self.query_params['ucuser']:
-            flask.abort(400)
+        self.wiki = '%s.wikipedia.org' % self.fields['lang']
+        self.query_params['ucuser'] = self.fields['user']
         return super(UserRevisions, self).get_query()
 
-    def get_results(self):
+    def get_data(self):
         api_resp = self.get_query()
         try:
             revisions = api_resp['query']['usercontribs']
