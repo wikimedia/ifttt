@@ -12,6 +12,12 @@ It currently supports the following triggers:
  - Updates to specified article
  - Updates from specified user
 
+# TODO
+
+ - [ ] Add file name to POTD trigger
+ - [ ] Add authorship--is that too hard?
+ - [ ] Article of the day summary?
+
 # License
 
 Copyright 2015 Ori Livneh <ori@wikimedia.org>,

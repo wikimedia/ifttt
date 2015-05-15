@@ -173,9 +173,9 @@ class ArticleOfTheDay(BaseFeaturedFeedTriggerView):
     fields = {'lang': DEFAULT_LANG}
     feed = 'featured'
 
-    def get_items(self):
+    def get_data(self):
         self.wiki = '%s.wikipedia.org' % self.fields['lang']
-        return super(ArticleOfTheDay, self).get_items()
+        return super(ArticleOfTheDay, self).get_data()
 
     def parse_entry(self, entry):
         """Scrape each AotD entry for its URL and title."""
@@ -193,9 +193,9 @@ class WordOfTheDay(BaseFeaturedFeedTriggerView):
     fields = {'lang': DEFAULT_LANG}
     feed = 'wotd'
 
-    def get_items(self):
+    def get_data(self):
         self.wiki = '%s.wiktionary.org' % self.fields['lang']
-        return super(WordOfTheDay, self).get_items()
+        return super(WordOfTheDay, self).get_data()
 
     def parse_entry(self, entry):
         """Scrape each WotD entry for the word, article URL, part of speech,
@@ -223,7 +223,7 @@ class NewArticle(BaseAPIQueryTriggerView):
                     'rcprop': 'title|ids|timestamp|user|sizes|comment',
                     'format': 'json'}
 
-    def get_query(self):
+    def get_data(self):
         self.wiki = '%s.wikipedia.org' % self.fields['lang']
         api_resp = self.get_query()
         try:
@@ -248,11 +248,11 @@ class NewHashtag(BaseTriggerView):
     """Trigger for hashtags in the edit summary."""
 
     fields = {'lang': DEFAULT_LANG, 'hashtag': 'test'}
-    url_pattern = 'hashtag'
+    url_pattern = 'new_hashtag'
 
     def get_data(self):
         self.wiki = '%s.wikipedia.org' % self.fields['lang']
-        self.tag = trigger_fields.get('hashtag')
+        self.tag = self.fields['hashtag']
         if self.tag == '':
             res = cache.get('allhashtags')
             if not res:

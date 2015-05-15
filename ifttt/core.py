@@ -31,6 +31,14 @@ from .triggers import (ArticleOfTheDay,
                        NewArticle,
                        NewHashtag)
 
+import logging
+LOG_FILE = 'ifttt.log'
+logging.basicConfig(filename=LOG_FILE,
+                    format='%(asctime)s - %(message)s',
+                    datefmt='%m/%d/%Y %I:%M:%S %p',
+                    level=logging.DEBUG)
+
+
 ALL_TRIGGERS = [ArticleOfTheDay,
                 PictureOfTheDay,
                 WordOfTheDay,
