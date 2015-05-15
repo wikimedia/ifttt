@@ -161,6 +161,8 @@ class PictureOfTheDay(BaseFeaturedFeedTriggerView):
         width = image_node.get('width')  # 300px per MediaWiki:Ffeed-potd-page
         image_url = thumb_url.rsplit('/' + width, 1)[0].replace('thumb/', '')
         desc_node = select(summary, '.description.en')
+        # TODO: include authorship for the picture
+        item['filename'] = image_node.get('alt')
         item['image_url'] = image_url
         item['filepage_url'] = file_page_node.get('href')
         item['description'] = desc_node.text_content().strip()
@@ -181,6 +183,8 @@ class ArticleOfTheDay(BaseFeaturedFeedTriggerView):
         """Scrape each AotD entry for its URL and title."""
         item = super(ArticleOfTheDay, self).parse_entry(entry)
         summary = lxml.html.fromstring(entry.summary)
+        item['summary'] = select(summary, 'p:first-of-type').text_content()
+        item['summary'] = item['summary'].replace(u'(Full\xa0article...)', '')
         read_more = select(summary, 'p:first-of-type > a:last-of-type')
         item['url'] = read_more.get('href')
         item['title'] = read_more.get('title')
