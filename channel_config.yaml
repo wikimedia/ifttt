@@ -26,6 +26,11 @@
         Slug: created_at
         Description: Date and time event was created.
         Type: Date
+      - Name: Filename
+        Slug: filename
+	Description: Name of the file
+	Type: String
+	Example: "Emscherkunst Tanzender Strommast Zauberlehrling 04 Crop.jpg"
   Trigger Examples:
       - Action: Create a text post
         Title: "Picture of the day for {{Date}}"
@@ -136,6 +141,11 @@
         Slug: created_at
         Description: Date and time event was created.
         Type: Date
+      - Name: Summary
+        Slug: summary
+	Description: Short description of the article
+	Type: String
+	Example: "Batman: Arkham Asylum is a 2009 action-adventure video game based on the DC Comics superhero. Written by veteran Batman comics writer Paul Dini (pictured), it was developed by Rocksteady Studios..."
   Trigger Examples:
       - Action: Create a text post
         Title: "Wikipedia article of the day for {{Date}}"
