@@ -272,6 +272,7 @@ class NewHashtag(BaseTriggerView):
                 cache.set('hashtags-%s' % self.tag,
                           res,
                           timeout=CACHE_EXPIRATION)
+            res.sort(key=lambda rev: rev['rc_timestamp'], reverse=True) 
         return filter(self.validate_tags, map(self.parse_result, res))
 
     def parse_result(self, rev):
