@@ -46,7 +46,8 @@ from .utils import (select,
 LOG_FILE = 'ifttt.log'
 CACHE_EXPIRATION = 5 * 60
 DEFAULT_LANG = 'en'
-
+TEST_FIELDS = ['test', 'Coffee', 'ClueBot']  # test properties currently mixed
+                                             # with trigger default values
 DEFAULT_RESP_LIMIT = 50  # IFTTT spec
 
 cache = werkzeug.contrib.cache.SimpleCache()
@@ -59,20 +60,22 @@ logging.basicConfig(filename=LOG_FILE,
 
 class BaseTriggerView(flask.views.MethodView):
 
-    fields = {}
+    default_fields = {}
 
     def get_data(self):
         pass
 
     def post(self):
         """Handle POST requests."""
+        self.fields = {}
         self.params = flask.request.get_json(force=True, silent=True) or {}
         limit = self.params.get('limit', DEFAULT_RESP_LIMIT)
         trigger_identity = self.params.get('trigger_identity')
         trigger_values = self.params.get('triggerFields', {})
-        for field, default_value in self.fields.items():
+        for field, default_value in self.default_fields.items():
             self.fields[field] = trigger_values.get(field)
-            if self.fields[field] == '' and default_value is not 'test':
+            if self.fields[field] == '' and default_value not in TEST_FIELDS:
+                # TODO: Clean up
                 self.fields[field] = default_value
             if not self.fields[field]:
                 flask.abort(400)
@@ -172,7 +175,7 @@ class PictureOfTheDay(BaseFeaturedFeedTriggerView):
 class ArticleOfTheDay(BaseFeaturedFeedTriggerView):
     """Trigger for Wikipedia's Today's Featured Article."""
 
-    fields = {'lang': DEFAULT_LANG}
+    default_fields = {'lang': DEFAULT_LANG}
     feed = 'featured'
 
     def get_data(self):
@@ -194,7 +197,7 @@ class ArticleOfTheDay(BaseFeaturedFeedTriggerView):
 class WordOfTheDay(BaseFeaturedFeedTriggerView):
     """Trigger for Wiktionary's Word of the Day."""
 
-    fields = {'lang': DEFAULT_LANG}
+    default_fields = {'lang': DEFAULT_LANG}
     feed = 'wotd'
 
     def get_data(self):
@@ -218,7 +221,7 @@ class WordOfTheDay(BaseFeaturedFeedTriggerView):
 class NewArticle(BaseAPIQueryTriggerView):
     """Trigger for each new article."""
 
-    fields = {'lang': DEFAULT_LANG}
+    default_fields = {'lang': DEFAULT_LANG}
     query_params = {'action': 'query',
                     'list': 'recentchanges',
                     'rctype': 'new',
@@ -251,7 +254,7 @@ class NewArticle(BaseAPIQueryTriggerView):
 class NewHashtag(BaseTriggerView):
     """Trigger for hashtags in the edit summary."""
 
-    fields = {'lang': DEFAULT_LANG, 'hashtag': 'test'}
+    default_fields = {'lang': DEFAULT_LANG, 'hashtag': 'test'}
     url_pattern = 'new_hashtag'
 
     def get_data(self):
@@ -303,7 +306,7 @@ class NewHashtag(BaseTriggerView):
 class ArticleRevisions(BaseAPIQueryTriggerView):
     """Trigger for revisions to a specified article."""
 
-    fields = {'lang': DEFAULT_LANG, 'title': 'Coffee'}
+    default_fields = {'lang': DEFAULT_LANG, 'title': 'Coffee'}
     query_params = {'action': 'query',
                     'prop': 'revisions',
                     'titles': None,
@@ -340,7 +343,7 @@ class ArticleRevisions(BaseAPIQueryTriggerView):
 class UserRevisions(BaseAPIQueryTriggerView):
     """Trigger for revisions from a specified user."""
 
-    fields = {'lang': DEFAULT_LANG, 'user': 'ClueBot'}
+    default_fields = {'lang': DEFAULT_LANG, 'user': 'ClueBot'}
     query_params = {'action': 'query',
                     'list': 'usercontribs',
                     'ucuser': None,

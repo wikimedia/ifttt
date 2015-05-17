@@ -90,8 +90,8 @@ def test_setup():
     ret = {'samples': {'triggers': {}}}
     for trigger in ALL_TRIGGERS:
         trigger_name = snake_case(trigger.__name__)
-        if trigger.fields:
-            ret['samples']['triggers'][trigger_name] = trigger.fields
+        if trigger.default_fields:
+            ret['samples']['triggers'][trigger_name] = trigger.default_fields
     return flask.jsonify(data=ret)
 
 
