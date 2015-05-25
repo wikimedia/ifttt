@@ -67,3 +67,16 @@ def get_all_hashtags(lang='en', hours=DEFAULT_HOURS):
     query_params = (hours, '(^| )#[[:alpha:]]{2}[[:alnum:]]*[[:>:]]')
     ret = run_query(query, query_params, lang)
     return ret
+
+
+def get_category_members(category_name, lang='en', hours=DEFAULT_HOURS):
+    query = '''
+        SELECT * FROM page, categorylinks
+        WHERE categorylinks.cl_to = ?
+        AND page.page_id = categorylinks.cl_from
+        AND categorylinks.cl_timestamp >= DATE_SUB(NOW(), 
+                                                   INTERVAL ? HOUR)
+        ORDER BY categorylinks.cl_timestamp DESC'''
+    query_params = (category_name.replace(' ', '_'), hours)
+    ret = run_query(query, query_params, lang)
+    return ret

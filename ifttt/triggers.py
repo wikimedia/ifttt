@@ -35,7 +35,7 @@ import werkzeug.contrib.cache
 
 from urllib import urlencode
 
-from .dal import get_hashtags, get_all_hashtags
+from .dal import get_hashtags, get_all_hashtags, get_category_members
 from .utils import (select,
                     url_to_uuid5,
                     utc_to_epoch,
@@ -46,8 +46,8 @@ from .utils import (select,
 LOG_FILE = 'ifttt.log'
 CACHE_EXPIRATION = 5 * 60
 DEFAULT_LANG = 'en'
-TEST_FIELDS = ['test', 'Coffee', 'ClueBot']  # test properties currently mixed
-                                             # with trigger default values
+TEST_FIELDS = ['test', 'Coffee', 'ClueBot', 'All stub articles'] 
+# test properties currently mixed  with trigger default values
 DEFAULT_RESP_LIMIT = 50  # IFTTT spec
 
 cache = werkzeug.contrib.cache.SimpleCache()
@@ -77,7 +77,8 @@ class BaseTriggerView(flask.views.MethodView):
             if self.fields[field] == '' and default_value not in TEST_FIELDS:
                 # TODO: Clean up
                 self.fields[field] = default_value
-            if not self.fields[field]:
+            if not self.fields[field] and field is not 'hashtag':
+                # TODO: Clean up
                 flask.abort(400)
         logging.info('%s: %s' % (self.__class__.__name__, trigger_identity))
         data = self.get_data()
@@ -297,11 +298,41 @@ class NewHashtag(BaseTriggerView):
         return ret
 
     def validate_tags(self, rev):
-        _not_tags = ['redirect', 'ifexist', 'if']
-        if set(rev['raw_tags']) - set(_not_tags):
+        _not_tags = ['redirect', 'tag', 'ifexist', 'if']
+        if set([tag.lower() for tag in rev['raw_tags']]) - set(_not_tags):
             return True
         else:
             return False
+
+
+class NewCategoryMember(BaseTriggerView):
+    """Trigger each time a new article appears in a category"""
+    default_fields = {'lang': DEFAULT_LANG, 'category': 'All stub articles'}
+    
+    def get_data(self):
+        self.lang = self.fields['lang']
+        self.category = self.fields['category']
+        self.wiki = '%s.wikipedia.org' % self.fields['lang']
+        res = cache.get('cat-%s' % self.category)
+        if not res:
+            res = get_category_members(self.category, lang=self.lang)
+            cache.set('cat-%s' % self.category,
+                      res,
+                      timeout=CACHE_EXPIRATION)
+        res.sort(key=lambda rev: rev['cl_timestamp'], reverse=True)
+        return map(self.parse_result, res)
+
+    def parse_result(self, rev):
+        date = rev['cl_timestamp']
+        date = date.isoformat() + 'Z'
+        ret = {'date': date,
+               'url': 'https://%s/wiki/%s' % (self.wiki, rev['page_title']),
+               'title': rev['page_title'].replace('_', ' '),
+               'category' : self.category}
+        ret['created_at'] = date
+        ret['meta'] = {'id': url_to_uuid5(ret['url']),
+                       'timestamp': iso8601_to_epoch(date)}
+        return ret
 
 
 class ArticleRevisions(BaseAPIQueryTriggerView):
