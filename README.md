@@ -12,7 +12,7 @@ It currently supports the following triggers:
  - Updates to article
  - Updates from user
  - Page added to category
- - Page updated in specified category
+ - Page updated in category
 
 # License
 
