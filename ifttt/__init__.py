@@ -25,4 +25,4 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 
-from ifttt.core import app
+from .core import app

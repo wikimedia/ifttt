@@ -12,3 +12,4 @@ venv
 ifttt.cfg
 *.log
 *.py#
+cache/*

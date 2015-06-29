@@ -30,7 +30,8 @@ from .triggers import (ArticleOfTheDay,
                        UserRevisions,
                        NewArticle,
                        NewHashtag,
-                       NewCategoryMember)
+                       NewCategoryMember,
+                       CategoryMemberRevisions)
 
 import logging
 LOG_FILE = 'ifttt.log'
@@ -47,7 +48,8 @@ ALL_TRIGGERS = [ArticleOfTheDay,
                 UserRevisions,
                 NewArticle,
                 NewHashtag,
-                NewCategoryMember]
+                NewCategoryMember,
+                CategoryMemberRevisions]
 
 app = flask.Flask(__name__)
 app.config.from_pyfile('../ifttt.cfg', silent=True)

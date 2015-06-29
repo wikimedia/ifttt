@@ -20,6 +20,7 @@
 
 """
 
+import os
 import datetime
 import operator
 import urllib2
@@ -35,7 +36,11 @@ import werkzeug.contrib.cache
 
 from urllib import urlencode
 
-from .dal import get_hashtags, get_all_hashtags, get_category_members
+from .dal import (get_hashtags, 
+                  get_all_hashtags, 
+                  get_category_members,
+                  get_category_member_revisions)
+
 from .utils import (select,
                     url_to_uuid5,
                     utc_to_epoch,
@@ -50,7 +55,9 @@ TEST_FIELDS = ['test', 'Coffee', 'ClueBot', 'All stub articles']
 # test properties currently mixed  with trigger default values
 DEFAULT_RESP_LIMIT = 50  # IFTTT spec
 
-cache = werkzeug.contrib.cache.SimpleCache()
+_cur_dir = os.path.dirname(__file__)
+_cache_dir = os.path.join(_cur_dir, '../cache')
+cache = werkzeug.contrib.cache.FileSystemCache(_cache_dir)
 
 logging.basicConfig(filename=LOG_FILE,
                     format='%(asctime)s - %(message)s',
@@ -61,6 +68,7 @@ logging.basicConfig(filename=LOG_FILE,
 class BaseTriggerView(flask.views.MethodView):
 
     default_fields = {}
+    optional_fields = []
 
     def get_data(self):
         pass
@@ -69,7 +77,7 @@ class BaseTriggerView(flask.views.MethodView):
         """Handle POST requests."""
         self.fields = {}
         self.params = flask.request.get_json(force=True, silent=True) or {}
-        limit = self.params.get('limit', DEFAULT_RESP_LIMIT)
+        self.limit = self.params.get('limit', DEFAULT_RESP_LIMIT)
         trigger_identity = self.params.get('trigger_identity')
         trigger_values = self.params.get('triggerFields', {})
         for field, default_value in self.default_fields.items():
@@ -77,12 +85,14 @@ class BaseTriggerView(flask.views.MethodView):
             if self.fields[field] == '' and default_value not in TEST_FIELDS:
                 # TODO: Clean up
                 self.fields[field] = default_value
-            if not self.fields[field] and field is not 'hashtag':
-                # TODO: Clean up
-                flask.abort(400)
+            if not self.fields[field]:
+                if field in self.optional_fields and self.fields[field] is not None:
+                    self.fields[field] = ''
+                else:
+                    flask.abort(400)
         logging.info('%s: %s' % (self.__class__.__name__, trigger_identity))
         data = self.get_data()
-        data = data[:limit]
+        data = data[:self.limit]
         return flask.jsonify(data=data)
 
 
@@ -256,23 +266,31 @@ class NewHashtag(BaseTriggerView):
     """Trigger for hashtags in the edit summary."""
 
     default_fields = {'lang': DEFAULT_LANG, 'hashtag': 'test'}
+    optional_fields = ['hashtag']
     url_pattern = 'new_hashtag'
 
     def get_data(self):
         self.wiki = '%s.wikipedia.org' % self.fields['lang']
         self.tag = self.fields['hashtag']
+        self.lang = self.fields['lang']
         if self.tag == '':
-            res = cache.get('allhashtags')
+            cache_name = 'allhashtags-%s-%s' % (self.lang, self.limit)
+            res = cache.get(cache_name)
             if not res:
-                res = get_all_hashtags()
-                cache.set('allhashtags', res, timeout=CACHE_EXPIRATION)
+                res = get_all_hashtags(lang=self.lang, limit=self.limit)
+                cache.set(cache_name, res, timeout=CACHE_EXPIRATION)
         else:
-            res = cache.get('hashtags-%s' % self.tag)
+            if self.tag == 'test':
+                tag_cache_expiration = 10 * 60 * 24
+            else:
+                tag_cache_expiration = CACHE_EXPIRATION
+            cache_name = 'hashtags-%s-%s-%s' % (self.tag, self.lang, self.limit)
+            res = cache.get(cache_name)
             if not res:
-                res = get_hashtags(self.tag)
-                cache.set('hashtags-%s' % self.tag,
+                res = get_hashtags(self.tag, lang=self.lang, limit=self.limit)
+                cache.set(cache_name,
                           res,
-                          timeout=CACHE_EXPIRATION)
+                          timeout=tag_cache_expiration)
             res.sort(key=lambda rev: rev['rc_timestamp'], reverse=True) 
         return filter(self.validate_tags, map(self.parse_result, res))
 
@@ -313,10 +331,11 @@ class NewCategoryMember(BaseTriggerView):
         self.lang = self.fields['lang']
         self.category = self.fields['category']
         self.wiki = '%s.wikipedia.org' % self.fields['lang']
-        res = cache.get('cat-%s' % self.category)
+        cache_name = 'cat-%s-%s-%s' % (self.category, self.lang, self.limit)
+        res = cache.get(cache_name)
         if not res:
             res = get_category_members(self.category, lang=self.lang)
-            cache.set('cat-%s' % self.category,
+            cache.set(cache_name,
                       res,
                       timeout=CACHE_EXPIRATION)
         res.sort(key=lambda rev: rev['cl_timestamp'], reverse=True)
@@ -329,6 +348,47 @@ class NewCategoryMember(BaseTriggerView):
                'url': 'https://%s/wiki/%s' % (self.wiki, rev['page_title']),
                'title': rev['page_title'].replace('_', ' '),
                'category' : self.category}
+        ret['created_at'] = date
+        ret['meta'] = {'id': url_to_uuid5(ret['url']),
+                       'timestamp': iso8601_to_epoch(date)}
+        return ret
+
+
+class CategoryMemberRevisions(BaseTriggerView):
+    """Trigger for revisions to articles within a specified category."""
+
+    default_fields = {'lang': DEFAULT_LANG, 'category': 'All stub articles'}
+
+    def get_data(self):
+        self.lang = self.fields['lang']
+        self.category = self.fields['category']
+        self.wiki = '%s.wikipedia.org' % self.fields['lang']
+        cache_name = 'cat-revs-%s-%s-%s' % (self.category, self.lang, self.limit)
+        res = cache.get(cache_name)
+        if not res:
+            res = get_category_member_revisions(self.category, lang=self.lang)
+            cache.set(cache_name,
+                      res,
+                      timeout=CACHE_EXPIRATION)
+        res.sort(key=lambda rev: rev['rc_timestamp'], reverse=True)
+        return map(self.parse_result, res)
+
+    def parse_result(self, rev):
+        date = datetime.datetime.strptime(rev['rc_timestamp'], '%Y%m%d%H%M%S')
+        date = date.isoformat() + 'Z'
+        if not rev['rc_new_len']:
+            rev['rc_new_len'] = 0
+        if not rev['rc_old_len']:
+            rev['rc_old_len'] = 0
+        ret = {'date': date,
+               'url': 'https://%s/w/index.php?diff=%s&oldid=%s' %
+                      (self.wiki,
+                       int(rev['rc_this_oldid']),
+                       int(rev['rc_last_oldid'])),
+               'user': rev['rc_user_text'],
+               'size': rev['rc_new_len'] - rev['rc_old_len'],
+               'comment': rev['rc_comment'],
+               'title': rev['rc_title'].replace('_', ' ')}
         ret['created_at'] = date
         ret['meta'] = {'id': url_to_uuid5(ret['url']),
                        'timestamp': iso8601_to_epoch(date)}
