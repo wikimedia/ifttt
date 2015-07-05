@@ -9,8 +9,10 @@ It currently supports the following triggers:
  - Word of the day
  - New article
  - Hashtag in an article edit summary
- - Updates to specified article
- - Updates from specified user
+ - Updates to article
+ - Updates from user
+ - Page added to category
+ - Page updated in category
 
 # License
 
