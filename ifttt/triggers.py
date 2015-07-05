@@ -64,6 +64,39 @@ logging.basicConfig(filename=LOG_FILE,
                     datefmt='%m/%d/%Y %I:%M:%S %p',
                     level=logging.DEBUG)
 
+# From https://www.mediawiki.org/wiki/Manual:Namespace
+NAMESPACE_MAP = {
+    0: 'Article',
+    1: 'Talk',
+    2: 'User',
+    3: 'User talk',
+    4: 'Wikipedia',
+    5: 'Wikipedia talk',
+    6: 'File',
+    7: 'File talk',
+    8: 'MediaWiki',
+    9: 'MediaWiki talk',
+    10: 'Template',
+    11: 'Template talk',
+    12: 'Help',
+    13: 'Help talk',
+    14: 'Category',
+    15: 'Category talk',
+    100: 'Portal',
+    101: 'Portal talk',
+    108: 'Book',
+    109: 'Book talk',
+    118: 'Draft',
+    119: 'Draft talk',
+    446: 'Education Program',
+    447: 'Education Program talk',
+    710: 'TimedText',
+    711: 'TimedText talk',
+    828: 'Module',
+    829: 'Module talk',
+    -1: 'Special',
+    -2: 'Media'
+}
 
 class BaseTriggerView(flask.views.MethodView):
 
@@ -281,7 +314,7 @@ class NewHashtag(BaseTriggerView):
                 cache.set(cache_name, res, timeout=CACHE_EXPIRATION)
         else:
             if self.tag == 'test':
-                tag_cache_expiration = 10 * 60 * 24
+                tag_cache_expiration = 60 * 60 * 24 * 10
             else:
                 tag_cache_expiration = CACHE_EXPIRATION
             cache_name = 'hashtags-%s-%s-%s' % (self.tag, self.lang, self.limit)
@@ -344,9 +377,19 @@ class NewCategoryMember(BaseTriggerView):
     def parse_result(self, rev):
         date = rev['cl_timestamp']
         date = date.isoformat() + 'Z'
+        namespace = NAMESPACE_MAP.get(rev['page_namespace'])
+        if namespace and rev['page_namespace'] > 0:
+            title = namespace + ':' + rev['page_title']
+        else:
+            title = rev['page_title']
+        if namespace is not None:
+            url = 'https://%s/wiki/%s' % (self.wiki, title.replace(' ', '_'))
+        else:
+            # Use curid because we don't know the namespace
+            url = 'https://%s/w/index.php?curid=%s' % (self.wiki, rev['page_id'])
         ret = {'date': date,
-               'url': 'https://%s/wiki/%s' % (self.wiki, rev['page_title']),
-               'title': rev['page_title'].replace('_', ' '),
+               'url': url,
+               'title': title,
                'category' : self.category}
         ret['created_at'] = date
         ret['meta'] = {'id': url_to_uuid5(ret['url']),
