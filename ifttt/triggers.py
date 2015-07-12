@@ -389,7 +389,7 @@ class NewCategoryMember(BaseTriggerView):
             url = 'https://%s/w/index.php?curid=%s' % (self.wiki, rev['page_id'])
         ret = {'date': date,
                'url': url,
-               'title': title,
+               'title': title.replace('_', ' '),
                'category' : self.category}
         ret['created_at'] = date
         ret['meta'] = {'id': url_to_uuid5(ret['url']),
@@ -506,6 +506,6 @@ class UserRevisions(BaseAPIQueryTriggerView):
                'user': self.params['triggerFields']['user'],
                'size': contrib['size'],
                'comment': contrib['comment'],
-               'title': contrib['user']}
+               'title': contrib['title']}
         ret.update(super(UserRevisions, self).parse_result(ret))
         return ret

@@ -50,12 +50,18 @@ def get_hashtags(tag, lang=DEFAULT_LANG, hours=DEFAULT_HOURS, limit=DEFAULT_LIMI
     else:
         interval = '%s HOUR' % hours
     query = '''
-        SELECT *
+        SELECT rc_comment,
+               rc_timestamp,
+               rc_this_oldid,
+               rc_last_oldid,
+               rc_user_text,
+               rc_new_len,
+               rc_old_len,
+               rc_title
         FROM recentchanges
         WHERE rc_type = 0
         AND rc_timestamp >= DATE_SUB(NOW(), INTERVAL %s)
         AND rc_comment REGEXP ?
-        ORDER BY rc_timestamp DESC
         LIMIT ?''' % interval
     query_params = ('(^| )#%s[[:>:]]' % tag, limit)
     ret = run_query(query, query_params, lang)
@@ -64,7 +70,14 @@ def get_hashtags(tag, lang=DEFAULT_LANG, hours=DEFAULT_HOURS, limit=DEFAULT_LIMI
 
 def get_all_hashtags(lang=DEFAULT_LANG, hours=DEFAULT_HOURS, limit=DEFAULT_LIMIT):
     query = '''
-        SELECT *
+        SELECT rc_comment,
+               rc_timestamp,
+               rc_this_oldid,
+               rc_last_oldid,
+               rc_user_text,
+               rc_new_len,
+               rc_old_len,
+               rc_title
         FROM recentchanges
         WHERE rc_type = 0
         AND rc_timestamp > DATE_SUB(NOW(), INTERVAL ? HOUR)
@@ -83,7 +96,6 @@ def get_category_members(category_name, lang=DEFAULT_LANG,
         AND page.page_id = categorylinks.cl_from
         AND categorylinks.cl_timestamp >= DATE_SUB(NOW(), 
                                                    INTERVAL ? HOUR)
-        ORDER BY categorylinks.cl_timestamp DESC
         LIMIT ?'''
     query_params = (category_name.replace(' ', '_'), hours, limit)
     ret = run_query(query, query_params, lang)
@@ -110,7 +122,6 @@ def get_category_member_revisions(category_name, lang=DEFAULT_LANG,
          AND rc.rc_type = 0
          AND rc.rc_timestamp >= DATE_SUB(NOW(), 
                                          INTERVAL ? HOUR) 
-         ORDER BY rc.rc_timestamp DESC
          LIMIT ?'''
     query_params = (category_name.replace(' ', '_'), hours, limit)
     ret = run_query(query, query_params, lang)
