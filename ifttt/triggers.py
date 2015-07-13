@@ -377,16 +377,16 @@ class NewCategoryMember(BaseTriggerView):
     def parse_result(self, rev):
         date = rev['cl_timestamp']
         date = date.isoformat() + 'Z'
-        namespace = NAMESPACE_MAP.get(rev['page_namespace'])
-        if namespace and rev['page_namespace'] > 0:
-            title = namespace + ':' + rev['page_title']
+        namespace = NAMESPACE_MAP.get(rev['rc_namespace'])
+        if namespace and rev['rc_namespace'] > 0:
+            title = namespace + ':' + rev['rc_title']
         else:
-            title = rev['page_title']
+            title = rev['rc_title']
         if namespace is not None:
             url = 'https://%s/wiki/%s' % (self.wiki, title.replace(' ', '_'))
         else:
             # Use curid because we don't know the namespace
-            url = 'https://%s/w/index.php?curid=%s' % (self.wiki, rev['page_id'])
+            url = 'https://%s/w/index.php?curid=%s' % (self.wiki, rev['rc_cur_id'])
         ret = {'date': date,
                'url': url,
                'title': title.replace('_', ' '),
