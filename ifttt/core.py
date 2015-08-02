@@ -21,6 +21,7 @@
 """
 
 import flask
+from flask import request
 
 from .utils import snake_case
 from .triggers import (ArticleOfTheDay,
@@ -31,7 +32,8 @@ from .triggers import (ArticleOfTheDay,
                        NewArticle,
                        NewHashtag,
                        NewCategoryMember,
-                       CategoryMemberRevisions)
+                       CategoryMemberRevisions,
+                       GeoRevisions)
 
 import logging
 LOG_FILE = 'ifttt.log'
@@ -49,7 +51,8 @@ ALL_TRIGGERS = [ArticleOfTheDay,
                 NewArticle,
                 NewHashtag,
                 NewCategoryMember,
-                CategoryMemberRevisions]
+                CategoryMemberRevisions,
+                GeoRevisions]
 
 app = flask.Flask(__name__)
 app.config.from_pyfile('../ifttt.cfg', silent=True)
@@ -103,6 +106,12 @@ def test_setup():
 def status():
     """Return HTTP 200 and an empty body, as required by the IFTTT spec."""
     return ''
+
+
+@app.route('/v1/triggers/geo_edit', methods=['POST'])
+def write_geo_post():
+    logging.log(logging.DEBUG, request.data)
+    return 'yes'
 
 
 for view_class in ALL_TRIGGERS:
