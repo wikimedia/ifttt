@@ -232,7 +232,7 @@ class ArticleOfTheDay(BaseFeaturedFeedTriggerView):
         summary = lxml.html.fromstring(entry.summary)
         item['summary'] = select(summary, 'p:first-of-type').text_content()
         item['summary'] = item['summary'].replace(u'(Full\xa0article...)', '')
-        read_more = select(summary, 'p:first-of-type > a:last-of-type')
+        read_more = select(summary, 'p:first-of-type a:last-of-type')
         item['url'] = read_more.get('href')
         item['title'] = read_more.get('title')
         return item
@@ -307,24 +307,10 @@ class NewHashtag(BaseTriggerView):
         self.tag = self.fields['hashtag']
         self.lang = self.fields['lang']
         if self.tag == '':
-            cache_name = 'allhashtags-%s-%s' % (self.lang, self.limit)
-            res = cache.get(cache_name)
-            if not res:
-                res = get_all_hashtags(lang=self.lang, limit=self.limit)
-                cache.set(cache_name, res, timeout=CACHE_EXPIRATION)
+            res = get_all_hashtags(lang=self.lang, limit=self.limit)
         else:
-            if self.tag == 'test':
-                tag_cache_expiration = 60 * 60 * 24 * 10
-            else:
-                tag_cache_expiration = CACHE_EXPIRATION
-            cache_name = 'hashtags-%s-%s-%s' % (self.tag, self.lang, self.limit)
-            res = cache.get(cache_name)
-            if not res:
-                res = get_hashtags(self.tag, lang=self.lang, limit=self.limit)
-                cache.set(cache_name,
-                          res,
-                          timeout=tag_cache_expiration)
-            res.sort(key=lambda rev: rev['rc_timestamp'], reverse=True) 
+            res = get_hashtags(self.tag, lang=self.lang, limit=self.limit)
+        res.sort(key=lambda rev: rev['rc_timestamp'], reverse=True) 
         return filter(self.validate_tags, map(self.parse_result, res))
 
     def parse_result(self, rev):

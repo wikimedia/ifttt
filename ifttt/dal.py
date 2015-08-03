@@ -28,6 +28,18 @@ DEFAULT_LIMIT = 50
 
 DB_CONFIG_PATH = os.path.expanduser('~/replica.my.cnf')  # Available by default on Labs
 
+HT_DB_HOST = 's1.labsdb'  # The hashtag table is on the same server as the enwiki db replica
+HT_DB_NAME = 's52490__hashtags_p'
+
+
+def ht_db_connect(read_default_file=DB_CONFIG_PATH):
+    connection = oursql.connect(db=HT_DB_NAME,
+                                host=HT_DB_HOST,
+                                read_default_file=read_default_file,
+                                charset=None,
+                                use_unicode=False)
+    return connection
+
 
 def run_query(query, query_params, lang):
     db_title = lang + 'wiki_p'
@@ -42,71 +54,58 @@ def run_query(query, query_params, lang):
     return ret
 
 
-def get_hashtags(tag, lang=DEFAULT_LANG, hours=DEFAULT_HOURS, limit=DEFAULT_LIMIT):
+def get_hashtags(tag, lang=DEFAULT_LANG, limit=DEFAULT_LIMIT):
     if tag and tag[0] == '#':
         tag = tag[1:]
-    if tag == 'test':
-        interval = '14 DAY'
-    else:
-        interval = '%s HOUR' % hours
+    connection = ht_db_connect()
+    cursor = connection.cursor(oursql.DictCursor)
     query = '''
-        SELECT rc_comment,
-               rc_timestamp,
-               rc_this_oldid,
-               rc_last_oldid,
-               rc_user_text,
-               rc_new_len,
-               rc_old_len,
-               rc_title
-        FROM recentchanges
-        WHERE rc_type = 0
-        AND rc_timestamp >= DATE_SUB(NOW(), INTERVAL %s)
-        AND rc_comment REGEXP ?
-        ORDER BY rc_id DESC
-        LIMIT ?''' % interval
-    query_params = ('(^| )#%s[[:>:]]' % tag, limit)
-    ret = run_query(query, query_params, lang)
-    return ret
+    SELECT *
+    FROM recentchanges AS rc
+    JOIN hashtag_recentchanges AS htrc
+      ON htrc.htrc_id = rc.htrc_id
+    JOIN hashtags AS ht
+      ON ht.ht_id = htrc.ht_id
+    WHERE ht.ht_text = ?
+    AND rc.htrc_lang = ?
+    ORDER BY rc.rc_id DESC
+    LIMIT ?'''
+    params = (tag, lang, limit)
+    cursor.execute(query, params)
+    return cursor.fetchall()
 
 
-def get_all_hashtags(lang=DEFAULT_LANG, hours=DEFAULT_HOURS, limit=DEFAULT_LIMIT):
+def get_all_hashtags(lang=DEFAULT_LANG, limit=DEFAULT_LIMIT):
+    connection = ht_db_connect()
+    cursor = connection.cursor(oursql.DictCursor)
     query = '''
-        SELECT rc_comment,
-               rc_timestamp,
-               rc_this_oldid,
-               rc_last_oldid,
-               rc_user_text,
-               rc_new_len,
-               rc_old_len,
-               rc_title
-        FROM recentchanges
-        WHERE rc_type = 0
-        AND rc_timestamp > DATE_SUB(NOW(), INTERVAL ? HOUR)
-        AND rc_comment REGEXP ?
-        ORDER BY rc_id DESC
-        LIMIT ?'''
-    query_params = (hours, '(^| )#[[:alpha:]]{2}[[:alnum:]]*[[:>:]]', limit)
-    ret = run_query(query, query_params, lang)
-    return ret
+    SELECT *
+    FROM recentchanges AS rc
+    WHERE rc.rc_type = 0
+    ORDER BY rc.rc_id DESC
+    LIMIT ?'''
+    params = (limit,)
+    cursor.execute(query, params)
+    return cursor.fetchall()
 
 
 def get_category_members(category_name, lang=DEFAULT_LANG,
                          hours=DEFAULT_HOURS, limit=DEFAULT_LIMIT):
-    query = '''SELECT DISTINCT rc.rc_title,
-                      rc.rc_cur_id,
-                      rc.rc_namespace,
-                      cl.cl_timestamp
-               FROM recentchanges as rc
-               INNER JOIN recentchanges AS rc_talk
-                   ON rc.rc_title = rc_talk.rc_title
-                   AND rc.rc_namespace = 0
-               INNER JOIN categorylinks AS cl
-                   ON rc_talk.rc_cur_id = cl.cl_from
-               WHERE cl.cl_to = ?
-               AND cl.cl_timestamp >= DATE_SUB(NOW(), 
-                                               INTERVAL ? HOUR)
-               ORDER BY rc.rc_id DESC
-               LIMIT ?'''
+    query = '''SELECT rc.rc_title,
+       rc.rc_cur_id,
+       rc.rc_namespace,
+       cl.cl_timestamp
+       FROM recentchanges as rc
+       INNER JOIN recentchanges AS rc_talk
+             ON rc.rc_title = rc_talk.rc_title
+             AND rc.rc_namespace = (rc_talk.rc_namespace - (rc_talk.rc_namespace % 2))
+       INNER JOIN categorylinks AS cl
+             ON rc_talk.rc_cur_id = cl.cl_from
+       WHERE cl.cl_to = ?
+       AND cl.cl_timestamp >= DATE_SUB(NOW(), INTERVAL ? HOUR)
+       GROUP BY rc.rc_cur_id
+       ORDER BY rc.rc_id DESC
+       LIMIT ?'''
     query_params = (category_name.replace(' ', '_'), hours, limit)
     ret = run_query(query, query_params, lang)
     return ret
@@ -114,7 +113,7 @@ def get_category_members(category_name, lang=DEFAULT_LANG,
 
 def get_category_member_revisions(category_name, lang=DEFAULT_LANG,
                                   hours=DEFAULT_HOURS, limit=DEFAULT_LIMIT):
-    query = '''SELECT DISTINCT rc.rc_id,
+    query = '''SELECT rc.rc_id,
                       rc.rc_cur_id,
                       rc.rc_title,
                       rc.rc_timestamp,
@@ -127,13 +126,14 @@ def get_category_member_revisions(category_name, lang=DEFAULT_LANG,
                FROM recentchanges AS rc
                INNER JOIN recentchanges AS rc_talk
                    ON rc.rc_title = rc_talk.rc_title
-                   AND rc.rc_namespace = 0
+                   AND rc.rc_namespace = (rc_talk.rc_namespace - (rc_talk.rc_namespace % 2))
                INNER JOIN categorylinks AS cl
                    ON rc_talk.rc_cur_id = cl.cl_from
                WHERE cl.cl_to = ?
                AND rc.rc_type = 0
                AND rc.rc_timestamp >= DATE_SUB(NOW(),
                                                INTERVAL ? HOUR)
+               GROUP BY rc.rc_this_oldid
                ORDER BY rc.rc_id DESC
                LIMIT ?'''
     query_params = (category_name.replace(' ', '_'), hours, limit)
