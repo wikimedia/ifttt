@@ -1,0 +1,430 @@
+--- 
+# 
+# Channel config details
+# 
+- Name: Picture of the day
+  Description: This trigger fires whenever a a new picture of the day is posted on Wikimedia Commons.
+  Verbiage: New picture of the day
+  Endpoint: picture_of_the_day
+  Trigger Ingredients:
+      - Name: Description
+        Slug: description
+        Description: Short description of the picture
+        Type: String
+        Example: "Bayon, Khmer temple constructed in the late 12th or early 13th century and located in the ancient city of Angkor, today Cambodia." 
+      - Name: PictureURL
+        Slug: image_url
+        Description: The URL to the photo on Commons.
+        Type: String
+        Example: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Bayon%2C_Angkor_Thom%2C_Camboya%2C_2013-08-17%2C_DD_37.JPG"
+      - Name: MoreInfoURL
+        Slug: filepage_url
+        Description: More information URL
+        Type: String
+        Example: "http://commons.wikimedia.org/wiki/File:Bayon,_Angkor_Thom,_Camboya,_2013-08-17,_DD_37.JPG"
+      - Name: Date
+        Slug: created_at
+        Description: Date and time event was created.
+        Type: Date
+      - Name: Filename
+        Slug: filename
+	Description: Name of the file
+	Type: String
+	Example: "Emscherkunst Tanzender Strommast Zauberlehrling 04 Crop.jpg"
+  Trigger Examples:
+      - Action: Create a text post
+        Title: "Picture of the day for {{Date}}"
+        Body: "<img src='{{PictureURL}}''><br>{{Description}}"
+        Tags: "wikipedia, picture of the day"
+      - Action: Send notification
+        Notification: "Wikipedia picture of the day on {{Date}}: {{MoreInfoURL}}"
+      - Action: Create a text file
+        Filename: "Picture for {{Date}}"
+        Dropbox folder path: "wikipedia/picturesoftheday"
+        Text Body: "Picture for {{Date}} <br>{{Description}}<br>{{PictureURL}}"
+      - Action: Add row to spreadsheet
+        Spreadsheet name: "Wikipedia pictures of the day"
+        Formatted row: "{{Date}} |||{{PictureURL}} |||{{Description}} |||{{MoreInfoURL}}"
+      - Action: Call my phone
+        Message to say: "Hello there! Wikipedia picture of the day for {{Date}} : {{Description}}"
+      - Action: Quick add event
+        Quick add text: "{{Date}} picture of the day: {{PictureURL}}"
+- Name: Word of the Day
+  Description: This Trigger fires whenever a new Word of the Day is posted on English Wiktionary.
+  Verbiage: New Word of the Day
+  Endpoint: word_of_the_day
+  Trigger Fields:
+      - Label: Language
+        Key name: "lang"
+        Optional helper text: "Provide the two-letter [language code](http://en.wikipedia.org/wiki/Wikimedia_project#Language_codes) (defaults to English)"
+        Trigger field type: "Text input"
+        Validation: Validation required
+        How should this trigger be validated: "Text must match a custom regex"
+        Custom regex: "^[a-zA-Z]{0,2}$"
+        Message: "Use a two-letter code (like 'de' for German), or you can leave it blank for English"
+  Trigger Ingredients:
+      - Name: Word
+        Slug: word
+        Description: The word of the day
+        Type: String
+        Example: polymath
+      - Name: URL
+        Slug: url
+        Description: The URL to the word's page on Wiktionary
+        Type: Web URL
+        Example: "http://en.wiktionary.org/wiki/polymath"
+      - Name: PartOfSpeech
+        Slug: part_of_speech
+        Description: The part of speech of the word
+        Type: String
+        Example: n
+      - Name: Definition
+        Slug: definition
+        Description: The definition of the word
+        Type: String
+        Example: A person with extraordinarily broad and comprehensive knowledge.
+      - Name: Date
+        Slug: created_at
+        Description: Date and time event was created.
+        Type: Date
+  Trigger Examples:
+      - Action: Create a text post
+        Title: "{{Word}}: word of the day for {{Date}}"
+        Body: "<a href='{{URL}}''>{{Word}} </a>, <i>{{PartOfSpeech}}</i> :<br/> {{Definition}}"
+        Tags: "wiktionary, wordoftheday, {{Word}}"
+      - Action: send notification
+        Notification: "{{Word}} : {{Definition}} (word of the day date for {{Date}})"
+      - Action: Create a text file
+        Filename: "{{Word}}, {{PartOfSpeech}}:<br> {{Definition}} <br>{{URL}}"
+      - Action: Add row to spreadsheet
+        Spreadsheet name: "Word of the day"
+        Formatted row: "{{Date}}|||{{Word}}|||{{PartOfSpeech}}|||{{Definition}}|||{{URL}}"
+      - Action: Call my phone
+        Message to say: "Hello there, wordsmith. Today is {{Date}} , and the word of the day is {{Word}} . {{Word}} means {{Definition}}."
+      - Action: Quick add event
+        Quick add text: "Word of the day for {{Date}} is {{Word}}: {{Definition}} . Learn more: {{URL}}"
+- Name: Article of the Day
+  Description: This Trigger fires whenever the daily featured article on Wikipedia is updated.
+  Verbiage: New Article of the Day
+  Endpoint: article_of_the_day
+  Trigger Fields:
+      - Label: Language
+        Key name: "lang"
+        Optional helper text: "Provide the two-letter [language code](http://en.wikipedia.org/wiki/Wikimedia_project#Language_codes) (defaults to English)"
+        Trigger field type: "Text input"
+        Validation: Validation required
+        How should this trigger be validated: "Text must match a custom regex"
+        Custom regex: "^[a-zA-Z]{0,2}$"
+        Message: "Use a two-letter code (like 'de' for German), or you can leave it blank for English"
+  Trigger Ingredients:
+      - Name: Title
+        Slug: title
+        Description: Article title
+        Type: String
+        Example: D'Oliveira affair
+      - Name: URL
+        Slug: url
+        Description: The URL to the article on Wikipedia
+        Type: Web URL
+        Example: "https://en.wikipedia.org/wiki/D%27Oliveira_affair"
+      - Name: PartOfSpeech
+        Slug: part_of_speech
+        Description: The part of speech of the word
+        Type: String
+        Example: n
+      - Name: Definition
+        Slug: definition
+        Description: The definition of the word
+        Type: String
+        Example: A person with extraordinarily broad and comprehensive knowledge.
+      - Name: Date
+        Slug: created_at
+        Description: Date and time event was created.
+        Type: Date
+      - Name: Summary
+        Slug: summary
+	Description: Short description of the article
+	Type: String
+	Example: "Batman: Arkham Asylum is a 2009 action-adventure video game based on the DC Comics superhero. Written by veteran Batman comics writer Paul Dini (pictured), it was developed by Rocksteady Studios..."
+  Trigger Examples:
+      - Action: Create a text post
+        Title: "Wikipedia article of the day for {{Date}}"
+        Body: "The Wikipedia article of the day for {{Date}} is <a href='{{URL}}''>{{Title}}</a>."
+        Tags: "wikipedia, article of the day, {{Title}}"
+      - Action: send notification
+        Notification: "{{Title}}, Wikipedia article of the day for {{Date}}"
+      - Action: Create a text file
+        Filename: "{{Title}}"
+        Dropbox folder path: "wikipedia/articlesoftheday"
+        Text Body: "{{Date}} <br>{{Title}} <br>{{URL}} <br>"
+      - Action: Add row to spreadsheet
+        Spreadsheet name: "Word of the day"
+        Formatted row: "{{Date}}|||{{Word}}|||{{PartOfSpeech}}|||{{Definition}}|||{{URL}}"
+      - Action: Call my phone
+        Message to say: "Hello there! Today is {{Date}} , and the Wikipedia article of the day is {{Title}} ."
+      - Action: Quick add event
+        Quick add text: "Word of the day for {{Date}} is {{Word}}: {{Definition}} . Learn more: {{URL}}"
+- Name: New articles
+  Description: This Trigger fires every time a new Wikipedia article is created.
+  Verbiage: New article
+  Endpoint: new_article
+  Trigger Fields:
+      - Label: Language
+        Key name: "lang"
+        Optional helper text: "Provide the two-letter [language code](http://en.wikipedia.org/wiki/Wikimedia_project#Language_codes) (defaults to English)"
+        Trigger field type: "Text input"
+        Validation: Validation required
+        How should this trigger be validated: "Text must match a custom regex"
+        Custom regex: "^[a-zA-Z]{0,2}$"
+        Message: "Use a two-letter code (like 'de' for German), or you can leave it blank for English"
+  Trigger Ingredients:
+      - Name: Date
+        Slug: created_at
+        Description: Date and time event was created.
+        Type: Date
+      - Name: Title
+        Slug: title
+        Description: The article's title
+        Type: String
+        Example: Coffee
+      - Name: Size
+        Slug: size
+        Description: Byte size of the new article.
+        Type: String
+        Example: "+2,234"
+      - Name: URL
+        Slug: url
+        Description: A link to the new article
+        Type: Web url
+        Example: https://en.wikipedia.org/wiki/Coffee
+      - Name: User
+        Slug: user
+        Description: User who made the edit.
+        Type: String
+        Example: Dario
+      - Name: EditSummary
+        Slug: comment
+        Description: A short message describing the edit.
+        Type: String
+        Example: "writing at an #editathon"
+  Trigger Examples:
+      - Action: Create a text post
+        Title: "New Wikipedia article on {{Title}}"
+        Body: "{{User}} created a Wikipedia article on <a href='{{URL}}''>{{Title}}</a>, on {{Date}}."
+        Tags: "wikipedia, new article, {{Title}}, {{User}}"
+      - Action: send notification
+        Notification: "{{Title}}, a new Wikipedia article by {{User}}"
+      - Action: Create a text file
+        Filename: "{{Title}}"
+        Dropbox folder path: "wikipedia/newarticles"
+        Text Body: "{{Date}} <br>{{Title}} <br>{{URL}} <br>By {{User}}  ({{Size}}): {{EditSummary}}"
+      - Action: Add row to spreadsheet
+        Spreadsheet name: "New articles"
+        Formatted row: "{{Date}}|||{{Title}}|||{{URL}}|||{{User}}|||{{EditSummary}}"
+      - Action: Call my phone
+        Message to say: "Hello there! There is a new Wikipedia article about {{Title}}, created by {{User}} on {{Date}}."
+      - Action: Quick add event
+        Quick add text: "{{Title}}, a new Wikipedia article by {{User}} created on {{Date}}"
+- Name: New edit to specific article
+  Description: This Trigger fires each time someone edits a specified Wikipedia article.
+  Verbiage: Wikipedia article edited
+  Endpoint: article_revisions
+  Trigger Fields:
+      - Label: Article title
+        Key name: "title"
+        Optional helper text: "The article's title (note: it's case sensitive)"
+        Trigger field type: "Text input"
+        Validation: No validation required
+      - Label: Language
+        Key name: "lang"
+        Optional helper text: "Provide the two-letter [language code](http://en.wikipedia.org/wiki/Wikimedia_project#Language_codes) (defaults to English)"
+        Trigger field type: "Text input"
+        Validation: Validation required
+        How should this trigger be validated: "Text must match a custom regex"
+        Custom regex: "^[a-zA-Z]{0,2}$"
+        Message: "Use a two-letter code (like 'de' for German), or you can leave it blank for English"
+  Trigger Ingredients:
+      - Name: Date
+        Slug: created_at
+        Description: Date and time event was created.
+        Type: Date
+      - Name: URL
+        Slug: url
+        Description: The diff URL for the edit.
+        Type: Web url
+        Example: "https://en.wikipedia.org/w/index.php?diff=655779011&oldid=655756646"
+      - Name: EditSummary
+        Slug: comment
+        Description: A short message describing the edit.
+        Type: String
+        Example: "this edit is a #revert"
+      - Name: User
+        Slug: user
+        Description: User who made the edit.
+        Type: String
+        Example: Dario
+      - Name: Title
+        Slug: title
+        Description: "The article's title (note: it's case sensitive)"
+        Type: String
+        Example: Ulysses S. Grant
+  Trigger Examples:
+      - Action: Create a text post
+        Title: "New edit in the Wikipedia article on {{Title}}"
+        Body: "On {{Date}}, {{User}} made <a href='{{URL}}'>an edit the Wikipedia article on {{Title}}</a>."
+        Tags: "wikipedia, new article, {{Title}}, {{User}}"
+      - Action: send notification
+        Notification: "{{{User}} edited the Wikipedia article on {{Title}}"
+      - Action: Create a text file
+        Filename: "{{Title}} edited on {{Date}}"
+        Dropbox folder path: "wikipedia/edits/{{Title}}"
+        Text Body: "{{Date}} <br>{{Title}} <br>{{URL}} <br>By {{User}}"
+      - Action: Add row to spreadsheet
+        Spreadsheet name: "Edits to {{Title}} on Wikipedia"
+        Formatted row: "{{Date}}|||{{Title}}|||{{URL}}|||{{User}}|||{{EditSummary}}"
+      - Action: Call my phone
+        Message to say: "Hello there! There was an edit on the Wikipedia article about {{Title}}, by {{User}} on {{Date}}."
+      - Action: Quick add event
+        Quick add text: "{{User}} edited the Wikipedia article on {{Title}} on {{Date}}"
+- Name: New edit from specific user
+  Description: This Trigger fires each time a specified user makes a contribution to Wikipedia.
+  Verbiage: Edit from user
+  Endpoint: user_revisions
+  Trigger Fields:
+      - Label: User
+        Key name: "user"
+        Optional helper text: "Username to watch"
+        Trigger field type: "Text input"
+        Validation: No validation required
+      - Label: Language
+        Key name: "lang"
+        Optional helper text: "Provide the two-letter [language code](http://en.wikipedia.org/wiki/Wikimedia_project#Language_codes) (defaults to English)"
+        Trigger field type: "Text input"
+        Validation: Validation required
+        How should this trigger be validated: "Text must match a custom regex"
+        Custom regex: "^[a-zA-Z]{0,2}$"
+        Message: "Use a two-letter code (like 'de' for German), or you can leave it blank for English"
+  Trigger Ingredients:
+      - Name: Date
+        Slug: created_at
+        Description: Date and time event was created.
+        Type: Date
+      - Name: Title
+        Slug: title
+        Description: "The article's title (note: it's case sensitive)"
+        Type: String
+        Example: Ulysses S. Grant
+      - Name: Size
+        Slug: size
+        Description: Byte size of the edit.
+        Type: String
+        Example: "+2,234"
+      - Name: Url
+        Slug: url
+        Description: The diff URL for the edit.
+        Type: Web URL
+        Example: "https://en.wikipedia.org/w/index.php?diff=655779011&oldid=655756646"
+      - Name: User
+        Slug: user
+        Description: User who made the edit.
+        Type: String
+        Example: Dario
+      - Name: EditSummary
+        Slug: comment
+        Description: A short message describing the edit.
+        Type: String
+        Example: "this edit is a #revert"
+  Trigger Examples:
+      - Action: Create a text post
+        Title: "New edit in the Wikipedia article on {{Title}}"
+        Body: "On {{Date}}, {{User}} made <a href='{{URL}}''>an edit the Wikipedia article on {{Title}}</a>."
+        Tags: "wikipedia, new article, {{Title}}, {{User}}"
+      - Action: send notification
+        Notification: "{{{User}} edited the Wikipedia article on {{Title}}"
+      - Action: Create a text file
+        Filename: "{{Title}} edited on {{Date}}"
+        Dropbox folder path: "wikipedia/edits/{{Title}}"
+        Text Body: "{{Date}} <br>{{Title}} <br>{{URL}} <br>By {{User}}"
+      - Action: Add row to spreadsheet
+        Spreadsheet name: "Edits from {{User}} on Wikipedia"
+        Formatted row: "{{Date}}|||{{Title}}|||{{URL}}|||{{User}}|||{{EditSummary}}"
+      - Action: Call my phone
+        Message to say: "Hello there! There was an edit on the Wikipedia article about {{Title}}, by {{User}} on {{Date}}."
+      - Action: Quick add event
+        Quick add text: "{{User}} edited the Wikipedia article on {{Title}} on {{Date}}"
+- Name: New edit with hashtag
+  Description: This Trigger fires every time a Wikipedia edit includes a specific hashtag.
+  Verbiage: New edit with hashtag
+  Endpoint: new_hashtag
+  Trigger Fields:
+      - Label: Hashtag
+        Key name: "hashtag"
+        Optional helper text: "A hashtag included in the edit summary. Leave blank for all hashtags."
+        Trigger field type: "Text input"
+        Validation: No validation required
+      - Label: Language
+        Key name: "lang"
+        Optional helper text: "Provide the two-letter [language code](http://en.wikipedia.org/wiki/Wikimedia_project#Language_codes) (defaults to English)"
+        Trigger field type: "Text input"
+        Validation: Validation required
+        How should this trigger be validated: "Text must match a custom regex"
+        Custom regex: "^[a-zA-Z]{0,2}$"
+        Message: "Use a two-letter code (like 'de' for German), or you can leave it blank for English"
+  Trigger Ingredients:
+      - Name: Date
+        Slug: created_at
+        Description: Date and time event was created.
+        Type: Date
+      - Name: Title
+        Slug: title
+        Description: "The article's title (note: it's case sensitive)"
+        Type: String
+        Example: Ulysses S. Grant
+      - Name: Size
+        Slug: size
+        Description: Byte size of the edit.
+        Type: String
+        Example: "+2,234"
+      - Name: Url
+        Slug: url
+        Description: The diff URL for the edit.
+        Type: Web URL
+        Example: "https://en.wikipedia.org/w/index.php?diff=655779011&oldid=655756646"
+      - Name: User
+        Slug: user
+        Description: User who made the edit.
+        Type: String
+        Example: Dario
+      - Name: EditSummary
+        Slug: comment
+        Description: A short message describing the edit.
+        Type: String
+        Example: "this edit is a #revert"
+      - Name: RevisionHashtags
+        Slug: return_hashtags
+        Description: "All hashtags found in the revision comment, including the trigger hashtag."
+        Type: String
+        Example: "editathon"
+      - Name: TriggerHashtag
+        Slug: input_hashtag
+        Description: The hashtag that you are looking for.
+        Type: String
+        Example: "editathon"
+  Trigger Examples:
+      - Action: Create a text post
+        Title: "New article with the {{RevisionHashtags}} tag."
+        Body: "The {{Title}} article on Wikipedia included the {{RevisionHashtags}} tag. {{User}} edited the article on {{Date}} : {{URL}}"
+        Tags: "wikipedia, {{RevisionHashtags}} , {{Title}}"
+      - Action: send notification
+        Notification: "The {{RevisionHashtags}} tag(s) appeared on the {{Title}} article on Wikipedia."
+      - Action: Create a text file
+        Filename: "Wikipedia edits with hashtags {{TriggerHashtag}}"
+        Dropbox folder path: "wikipedia/hashtags"
+        Text Body: "{{Date}} <br>{{Title}} <br>{{RevisionHashtags}}<br>{{URL}} <br>By {{User}}"
+      - Action: Add row to spreadsheet
+        Spreadsheet name: "Wikipedia edits with hashtags {{TriggerHashtag}}"
+        Formatted row: "{{Date}}|||{{Title}}|||{{URL}}|||{{User}}|||{{EditSummary}}|||{{RevisionTags}}"
+      - Action: Call my phone
+        Message to say: "Hello there! The {{RevisionHashtags}} tag(s) appeared in an edit to the {{Title}} article on Wikipedia."
+      - Action: Quick add event
+        Quick add text: "{{User}} edited the Wikipedia article on {{Title}} on {{Date}}, tagged {{RevisionHashtags}}"

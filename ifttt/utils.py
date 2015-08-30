@@ -4,6 +4,7 @@
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   Copyright 2015 Ori Livneh <ori@wikimedia.org>
+                 Stephen LaPorte <stephen.laporte@gmail.com>
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -18,14 +19,12 @@
   limitations under the License.
 
 """
+
 import datetime
 import re
 import time
 import uuid
-
-
-__all__ = ('select', 'snake_case', 'url_to_uuid5', 'utc_to_epoch',
-           'utc_to_iso8601')
+import socket
 
 
 def snake_case(s):
@@ -48,9 +47,48 @@ def url_to_uuid5(url):
 def utc_to_iso8601(struct_time):
     """Make a W3-style ISO 8601 UTC timestamp from a struct_time object."""
     struct_time = datetime.datetime.utcfromtimestamp(time.mktime(struct_time))
-    return struct_time.isoformat() + 'Z'
+    return struct_time.date().isoformat()
 
 
 def utc_to_epoch(struct_time):
     """Convert a struct_time to an integer number of seconds since epoch."""
     return int(time.mktime(struct_time))
+
+
+def iso8601_to_epoch(iso_time):
+    dt = datetime.datetime.strptime(iso_time, '%Y-%m-%dT%H:%M:%SZ')
+    epoch = datetime.datetime.utcfromtimestamp(0)
+    return int((dt - epoch).total_seconds())
+
+
+def is_valid_ip(address):
+    try:
+        socket.inet_aton(address)
+        return True
+    except socket.error:
+        pass
+    try:
+        socket.inet_pton(socket.AF_INET6, address)
+        return True
+    except socket.error:
+        pass
+    return False
+
+
+# From boltons
+HASHTAG_RE = re.compile(r"(?:^|\s)[＃#]{1}(\w+)", re.UNICODE)
+
+
+def find_hashtags(string):
+    """Finds and returns all hashtags in a string, with the hashmark
+    removed. Supports full-width hashmarks for Asian languages and
+    does not false-positive on URL anchors.
+    >>> find_hashtags('#atag http://asite/#ananchor')
+    ['atag']
+    ``find_hashtags`` also works with unicode hashtags.
+    """
+
+    # the following works, doctest just struggles with it
+    # >>> find_hashtags(u"can't get enough of that dignity chicken #肯德基 woo")
+    # [u'\u80af\u5fb7\u57fa']
+    return HASHTAG_RE.findall(string)
