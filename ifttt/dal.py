@@ -47,7 +47,8 @@ def run_query(query, query_params, lang):
     connection = oursql.connect(db=db_title,
                                 host=db_host,
                                 read_default_file=DB_CONFIG_PATH,
-                                charset=None)
+                                charset=None,
+                                use_unicode=False)
     cursor = connection.cursor(oursql.DictCursor)
     cursor.execute(query, query_params)
     ret = cursor.fetchall()
@@ -107,6 +108,29 @@ def get_category_members(category_name, lang=DEFAULT_LANG,
        ORDER BY rc.rc_id DESC
        LIMIT ?'''
     query_params = (category_name.replace(' ', '_'), hours, limit)
+    ret = run_query(query, query_params, lang)
+    return ret
+
+def get_article_list_revisions(articles, lang=DEFAULT_LANG,
+                               hours=DEFAULT_HOURS, limit=DEFAULT_LIMIT):
+    query = '''SELECT DISTINCT rc_id,
+                      rc_cur_id,
+                      rc_title,
+                      rc_timestamp,
+                      rc_this_oldid,
+                      rc_last_oldid,
+                      rc_user_text,
+                      rc_old_len,
+                      rc_new_len,
+                      rc_comment
+               FROM recentchanges
+               WHERE rc_title IN (%s)
+               AND rc_type = 0
+               AND rc_timestamp >= DATE_SUB(NOW(),
+                                               INTERVAL ? HOUR)
+               ORDER BY rc_id DESC
+               LIMIT ?''' % ', '.join(['?' for i in range(len(articles))])
+    query_params = tuple([article.replace(' ', '_') for article in articles]) + (hours, limit)
     ret = run_query(query, query_params, lang)
     return ret
 
