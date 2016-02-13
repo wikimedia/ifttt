@@ -157,6 +157,7 @@ def get_category_member_revisions(category_name, lang=DEFAULT_LANG,
                AND rc.rc_type = 0
                AND rc.rc_timestamp >= DATE_SUB(NOW(),
                                                INTERVAL ? HOUR)
+               AND rc.rc_type = 0
                GROUP BY rc.rc_this_oldid
                ORDER BY rc.rc_id DESC
                LIMIT ?'''
