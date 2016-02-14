@@ -99,10 +99,12 @@ def get_category_members(category_name, lang=DEFAULT_LANG,
        FROM recentchanges as rc
        INNER JOIN recentchanges AS rc_talk
              ON rc.rc_title = rc_talk.rc_title
+             AND rc_talk.rc_type = 0
              AND rc.rc_namespace = (rc_talk.rc_namespace - (rc_talk.rc_namespace % 2))
        INNER JOIN categorylinks AS cl
              ON rc_talk.rc_cur_id = cl.cl_from
        WHERE cl.cl_to = ?
+       AND rc.rc_type = 0
        AND cl.cl_timestamp >= DATE_SUB(NOW(), INTERVAL ? HOUR)
        GROUP BY rc.rc_cur_id
        ORDER BY rc.rc_id DESC
@@ -150,6 +152,7 @@ def get_category_member_revisions(category_name, lang=DEFAULT_LANG,
                FROM recentchanges AS rc
                INNER JOIN recentchanges AS rc_talk
                    ON rc.rc_title = rc_talk.rc_title
+                   AND rc_talk.rc_type = 0
                    AND rc.rc_namespace = (rc_talk.rc_namespace - (rc_talk.rc_namespace % 2))
                INNER JOIN categorylinks AS cl
                    ON rc_talk.rc_cur_id = cl.cl_from
