@@ -59,7 +59,7 @@ app.config.from_pyfile('../ifttt.cfg', silent=True)
 
 
 @app.errorhandler(400)
-def unauthorized(e):
+def missing_field(e):
     """There was something wrong with incoming data from IFTTT. """
     error = {'message': 'missing required trigger field'}
     return flask.jsonify(errors=[error]), 400
