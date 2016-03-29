@@ -21,7 +21,7 @@
 """
 
 import flask
-from flask import request
+from flask import request, render_template, g
 
 from .utils import snake_case
 from .triggers import (ArticleOfTheDay,
@@ -75,6 +75,8 @@ def force_content_type(response):
     """RFC 4627 stipulates that 'application/json' takes no charset parameter,
     but IFTTT expects one anyway. We have to twist Flask's arm to get it to
     break the spec."""
+    if g.get('skip_after_request'):
+        return response
     response.headers['Content-Type'] = 'application/json; charset=utf-8'
     return response
 
@@ -98,6 +100,19 @@ def test_setup():
         if trigger.default_fields:
             ret['samples']['triggers'][trigger_name] = trigger.default_fields
     return flask.jsonify(data=ret)
+
+
+@app.route('/feeds')
+def feeds():
+    """Returns a list of all feeds(triggers) for Wikipedia IFTTT."""
+    feeds = {'samples': {'feeds': {}}}
+    for feed in ALL_TRIGGERS:
+        feed_name = snake_case(feed.__name__)
+        feed_display_name = feed_name.replace("_", " ").capitalize()
+        if feed.default_fields:
+            feeds['samples']['feeds'][feed_display_name] = feed.default_fields
+    g.skip_after_request = True
+    return render_template('feeds.html', data=feeds)
 
 
 @app.route('/v1/status')

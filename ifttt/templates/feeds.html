@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Wikipedia Feeds</title>
+</head>
+<body>
+	<h1>Wikipedia IFTTT RSS Feeds</h1>
+	<ul>
+		{% for feed in data.samples.feeds %}
+			<li>{{ feed }}</li><br />
+		{% endfor %}
+	</ul>
+</body>
+</html>
