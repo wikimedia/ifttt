@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss_feed xmlns="http://localhost:5000/v1/triggers/<sample-trigger>">
+    {% for feeds in data %}
+    <rss_feed_xml>
+        <created_at>{{feeds.created_at}}</created>
+        <entry_id>{{feeds.entry_id}}</entry_id>
+        <media_url>{{feeds.media_url}}</meta_url>
+        <summary>{{feeds.summary}}</summary>
+        <title>{{feeds.title}}</title>
+        <link>{{feeds.url}}</link>
+    </rss_feed_xml>
+    {% endfor %}
+</rss_feed>

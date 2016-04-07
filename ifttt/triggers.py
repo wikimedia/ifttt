@@ -31,6 +31,8 @@ import logging
 import flask
 import flask.views
 
+from flask import g, render_template, make_response
+
 import feedparser
 import werkzeug.contrib.cache
 
@@ -168,6 +170,33 @@ class BaseTriggerView(flask.views.MethodView):
         data = self.get_data()
         data = data[:self.limit]
         return flask.jsonify(data=data)
+
+
+    def get(self):
+        """Handle GET requests."""
+        self.fields = {}
+        self.params = flask.request.get_json(force=True, silent=True) or {}
+        self.limit = self.params.get('limit', DEFAULT_RESP_LIMIT)
+        feed_identity = self.params.get('feed_identity')
+        feed_values = self.params.get('feedFields', {})
+        for field, default_value in self.default_fields.items():
+            self.fields[field] = feed_values.get(field)
+            if self.fields[field] == '' and default_value not in TEST_FIELDS:
+                self.fields[field] = default_value
+            if not self.fields[field]:
+                if field in self.optional_fields and self.fields[field] is not None:
+                    self.fields[field] = ''
+                else:
+                    flask.abort(400)
+        logging.info('%s: %s' % (self.__class__.__name__, feed_identity))
+        data = self.get_data()
+        data = data[:self.limit]
+        
+        feeds = render_template('article_of_the_day_feeds.xml', data=data)
+        response = make_response(feeds)
+        response.headers["Content-Type"] = "application/xml"    
+    
+        return response
 
 
 class BaseFeaturedFeedTriggerView(BaseTriggerView):
