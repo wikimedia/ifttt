@@ -178,7 +178,7 @@ class BaseTriggerView(flask.views.MethodView):
         self.params = flask.request.get_json(force=True, silent=True) or {}
         self.limit = self.params.get('limit', DEFAULT_RESP_LIMIT)
         feed_identity = self.params.get('feed_identity')
-        feed_values = self.params.get('feedFields', {})
+        feed_values = self.params.get('feedFields', {"lang":"en"})
         for field, default_value in self.default_fields.items():
             self.fields[field] = feed_values.get(field)
             if self.fields[field] == '' and default_value not in TEST_FIELDS:
@@ -194,7 +194,8 @@ class BaseTriggerView(flask.views.MethodView):
         
         feeds = render_template('article_of_the_day_feeds.xml', data=data)
         response = make_response(feeds)
-        response.headers["Content-Type"] = "application/xml"    
+        response.headers["IFTTT-Channel-Key"] = "iby3300pgO_mgONOyjbOEudtLe_Wf-2Ocsr8UuhncGmel-koPJHuRN-5Ly3L2Kzi"
+        response.headers["Content-Type"] = "application/xml"
     
         return response
 
