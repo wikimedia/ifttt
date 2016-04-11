@@ -194,7 +194,6 @@ class BaseTriggerView(flask.views.MethodView):
         
         feeds = render_template('article_of_the_day_feeds.xml', data=data)
         response = make_response(feeds)
-        response.headers["IFTTT-Channel-Key"] = "iby3300pgO_mgONOyjbOEudtLe_Wf-2Ocsr8UuhncGmel-koPJHuRN-5Ly3L2Kzi"
         response.headers["Content-Type"] = "application/xml"
     
         return response
