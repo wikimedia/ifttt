@@ -111,6 +111,7 @@ def feeds():
         feed_display_name = feed_name.replace("_", " ").capitalize()
         if feed.default_fields:
             feeds['samples']['feeds'][feed_display_name] = feed.default_fields
+
     g.skip_after_request = True
     return render_template('feeds.html', data=feeds)
 
