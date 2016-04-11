@@ -8,7 +8,7 @@
 	<ul>
 		{% for feed in data.samples.feeds %}
 			<li>{{ feed }}&nbsp;&nbsp;
-				<a href="http://localhost:5000/v1/triggers/{{feed.replace(" ","_").lower()}}"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
+				<a href="http://localhost:5000/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
 			</li><br />
 		{% endfor %}
 	</ul>

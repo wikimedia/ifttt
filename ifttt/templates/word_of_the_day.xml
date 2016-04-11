@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+    <channel>
+        <title>Word of the Day feeds</title>
+        <description>List words of the day for Wikipedia.</description>
+
+        <language>en-us</language>
+        {% for feeds in data %}
+            <item>
+                <pubDate>{{feeds.created_at}}</pubDate>
+                <description>{{feeds.definition}}</description>
+                <guid>{{feeds.entry_id}}</guid>
+                <url>{{feeds.url}}</url>
+                <title>{{feeds.word}}</title>
+            </item>
+        {% endfor %}
+    </channel>
+</rss>

@@ -31,7 +31,7 @@ import logging
 import flask
 import flask.views
 
-from flask import g, render_template, make_response
+from flask import g, render_template, make_response, request
 
 import feedparser
 import werkzeug.contrib.cache
@@ -49,7 +49,8 @@ from utils import (select,
                     utc_to_epoch,
                     utc_to_iso8601,
                     iso8601_to_epoch,
-                    find_hashtags)
+                    find_hashtags,
+                    snake_case)
 
 LOG_FILE = 'ifttt.log'
 CACHE_EXPIRATION = 5 * 60
@@ -174,11 +175,14 @@ class BaseTriggerView(flask.views.MethodView):
 
     def get(self):
         """Handle GET requests."""
+        # build the feed's file name
+        feed_filename = snake_case(self.__class__.__name__)
+
         self.fields = {}
         self.params = flask.request.get_json(force=True, silent=True) or {}
         self.limit = self.params.get('limit', DEFAULT_RESP_LIMIT)
         feed_identity = self.params.get('feed_identity')
-        feed_values = self.params.get('feedFields', {"lang":"en"})
+        feed_values = self.params.get('feedFields', {"lang":request.args.get('lang')})
         for field, default_value in self.default_fields.items():
             self.fields[field] = feed_values.get(field)
             if self.fields[field] == '' and default_value not in TEST_FIELDS:
@@ -192,7 +196,7 @@ class BaseTriggerView(flask.views.MethodView):
         data = self.get_data()
         data = data[:self.limit]
         
-        feeds = render_template('article_of_the_day_feeds.xml', data=data)
+        feeds = render_template(feed_filename + '.xml', data=data)
         response = make_response(feeds)
         response.headers["Content-Type"] = "application/xml"
     

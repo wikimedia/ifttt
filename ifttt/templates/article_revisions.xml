@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+    <channel>
+        <title>Article Revisions feeds</title>
+        <description>List of an article revisions for Wikipedia.</description>
+
+        <language>en-us</language>
+        {% for feeds in data %}
+            <item>
+                <comment>{{feeds.comment}}</comment>
+                <pubDate>{{feeds.created_at}}</pubDate>
+                <date>{{feeds.date}}</date>
+                <image>
+                    <url>{{feeds.media_url}}</url>
+                </image>
+                <size>{{feeds.size}}</size>
+                <title>{{feeds.title}}</title>
+                <link>{{feeds.url}}</link>
+                <user>{{feeds.user}}</user>
+            </item>
+        {% endfor %}
+    </channel>
+</rss>

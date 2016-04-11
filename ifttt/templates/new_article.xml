@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+    <channel>
+        <title>New article feeds</title>
+        <description>List New articles for Wikipedia.</description>
+
+        <language>en-us</language>
+        {% for feeds in data %}
+            <item>
+                <comment>{{feeds.comment}}</comment>
+                <pubDate>{{feeds.created_at}}</pubDate>
+                <date>{{feeds.date}}</date>
+                <size>{{feeds.size}}</size>
+                <title>{{feeds.title}}</title>
+                <url>{{feeds.url}}</url>
+                <user>{{feeds.user}}</user>
+            </item>
+        {% endfor %}
+    </channel>
+</rss>
