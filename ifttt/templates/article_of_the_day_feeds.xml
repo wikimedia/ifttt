@@ -9,7 +9,7 @@
             <item>
                 <created_at>{{feeds.created_at}}</created_at>
                 <entry_id>{{feeds.entry_id}}</entry_id>
-                <media_url>{{feeds.media_url}}</media_url
+                <media_url>{{feeds.media_url}}</media_url>
                 <summary>{{feeds.summary}}</summary>
                 <title>{{feeds.title}}</title>
                 <link>{{feeds.url}}</link>
