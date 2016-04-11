@@ -7,10 +7,12 @@
         <language>en-us</language>
         {% for feeds in data %}
             <item>
-                <created_at>{{feeds.created_at}}</created_at>
-                <entry_id>{{feeds.entry_id}}</entry_id>
-                <media_url>{{feeds.media_url}}</media_url>
-                <summary>{{feeds.summary}}</summary>
+                <pubDate>{{feeds.created_at}}</pubDate>
+                <guid>{{feeds.entry_id}}</guid>
+                <image>
+                    <url>{{feeds.media_url}}</url>
+                </image>
+                <description>{{feeds.summary}}</description>
                 <title>{{feeds.title}}</title>
                 <link>{{feeds.url}}</link>
             </item>
