@@ -79,12 +79,17 @@ def initialize_server():
     Setup an initial deployment on a fresh host.
     """
     print 'Setting up the ' + env.stage + ' server'
-    # Sets up a virtualenv directory
-    sr('mkdir', '-p', VENV_DIR)
-    sr('virtualenv', '--python', 'python2', VENV_DIR)
+
+    # Setup source directory and make www-data the owner
+    sudo('mkdir -p ' + SOURCE_DIR)
+    sudo('chown www-data:www-data ' + SOURCE_DIR)
 
     # Clone ifttt source
     clone_source_repo()
+
+    # Sets up a virtualenv directory
+    sr('mkdir', '-p', VENV_DIR)
+    sr('virtualenv', '--python', 'python2', VENV_DIR)
 
     # Uploads the db and ifttt channel creds to the server
     upload_config()
