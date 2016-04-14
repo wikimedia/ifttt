@@ -8,7 +8,7 @@ env.shell = '/bin/bash -c'
 
 STAGES = {
     'staging': {
-        'hosts': ['ifttt-staging.ifttt.eqiad.wmflabs'],
+        'hosts': ['ifttt-staging-01.ifttt.eqiad.wmflabs'],
         'local_config_file': './staging.cfg',
         'branch': 'master',
     },
