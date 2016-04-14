@@ -83,8 +83,8 @@ def initialize_server():
     sr('mkdir', '-p', VENV_DIR)
     sr('virtualenv', '--python', 'python2', VENV_DIR)
 
-    # Updates current version of ifttt source
-    update_source_repo()
+    # Clone ifttt source
+    clone_source_repo()
 
     # Uploads the db and ifttt channel creds to the server
     upload_config()
@@ -112,6 +112,20 @@ def deploy():
 
     # Restart ifttt web service
     restart_ifttt()
+
+
+@ensure_stage
+def clone_source_repo():
+    """
+    Clone source repo at SOURCE_DIR
+    """
+    sr('mkdir', '-p', SOURCE_DIR)
+    sr('chmod', '-R', '775', SOURCE_DIR)
+    with cd('/'):
+        sr('git', 'clone', 'https://github.com/wikimedia/ifttt.git',
+           SOURCE_DIR)
+    with cd(SOURCE_DIR):
+        sr('git', 'checkout', env.branch)
 
 
 @ensure_stage
@@ -155,7 +169,4 @@ def restart_ifttt():
     Restarts the ifttt web sersive
     """
     print 'Restarting ifttt'
-
-    # Doing uwsgi stop and start due to a known bug in our uwsgi puppet module
-    sudo('service uwsgi-ifttt stop')
-    sudo('service uwsgi-ifttt start')
+    sudo('service uwsgi-ifttt restart')
