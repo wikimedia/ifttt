@@ -172,7 +172,6 @@ class BaseTriggerView(flask.views.MethodView):
         data = data[:self.limit]
         return flask.jsonify(data=data)
 
-
     def get(self):
         """Handle GET requests."""
         # build the feed's file name
