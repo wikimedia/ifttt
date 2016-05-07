@@ -23,6 +23,14 @@
 
 from triggers import *
 
-def test_aotd_trigger():
-  """Test suite for Article of the Day trigger"""
-  pass
+import requests, unittest
+
+class AotdTestCase(unittest.TestCase):
+  """Test class for Article of the Day trigger"""
+
+  def test_aotd_trigger_with_get(self):
+    """Test suite for Article of the Day trigger which checks for 
+    proper respone code after the GET request"""
+
+    response = requests.get('http://localhost:5000/v1/triggers/article_of_the_day?lang=en')
+    self.assertEquals(response.status_code, 200)

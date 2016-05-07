@@ -205,7 +205,7 @@ class BaseTriggerView(flask.views.MethodView):
 
 
 class BaseFeaturedFeedTriggerView(BaseTriggerView):
-    """Generic view for IFTT Triggers based on FeaturedFeeds."""
+    """Generic view for IFTTT Triggers based on FeaturedFeeds."""
 
     _base_url = 'https://{0.wiki}/w/api.php?action=featuredfeed&feed={0.feed}'
 
