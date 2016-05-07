@@ -102,7 +102,7 @@ def test_setup():
     return flask.jsonify(data=ret)
 
 
-@app.route('/feeds')
+@app.route('/v1/wikipedia-feeds')
 def feeds():
     """Returns a list of all feeds(triggers) for Wikipedia IFTTT."""
     feeds = {'samples': {'feeds': {}}}

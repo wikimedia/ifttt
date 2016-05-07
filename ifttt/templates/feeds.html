@@ -4,19 +4,24 @@
 	<title>Wikipedia Feeds</title>
 </head>
 <body>
-	<h1>Wikipedia IFTTT RSS Feeds</h1>
+
+	<h1>Wikipedia RSS feeds for IFTTT</h1>
 	<ul>
 		{% for feed in data.samples.feeds %}
 			<li>{{ feed }}&nbsp;&nbsp;
+
 				{% if feed == "User revisions" %}
 					<a href="http://localhost:5000/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&user=Alangi_derick"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
+
 				{% elif feed == "Article revisions" %}
 					<a href="http://localhost:5000/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&title=Cluebot"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
+
 				{% else %}
 					<a href="http://localhost:5000/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
 				{% endif %}
 			</li><br />
 		{% endfor %}
 	</ul>
+	
 </body>
 </html>
