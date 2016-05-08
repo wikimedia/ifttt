@@ -24,5 +24,11 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-
 from .core import app
+from flask import Flask
+
+# Using factory configs to create a 
+# flask app.
+def create_app(cfg=None):
+    app = Flask(__name__)
+    return app

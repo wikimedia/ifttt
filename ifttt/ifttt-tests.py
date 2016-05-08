@@ -23,15 +23,31 @@
 
 from triggers import *
 
+from .__init__ import create_app
+
 import requests, unittest
 
+# URL of the server that the app is running on.
+# SERVER_URL = "http://127.0.0.1:5000"
+
 class AotdTestCase(unittest.TestCase):
-  """Test class for Article of the Day trigger"""
+    """Test class for Article of the Day trigger"""
 
-  def test_aotd_trigger_with_get(self):
-    """Test suite for Article of the Day trigger which checks for 
-    proper respone code after the GET request"""
+    def setUp(self):
+        """Setup to run before each test case."""
+        # Create the app using the factory method.
+        self.app = create_app()
 
-    # response = requests.get('http://localhost:5000/v1/triggers/article_of_the_day?lang=en')
-    # self.assertEquals(response.status_code, 200)
-    pass
+    def tearDown(self):
+        """Teardown to run after each test case."""
+        # Once all tests are run, return a pass to indicate
+        # all tests where run correctly without any errors.
+        pass
+
+    def test_aotd_trigger_with_get(self):
+        """Test suite for Article of the Day trigger which checks for 
+        proper respone code after the GET request"""
+
+        # response = requests.get(SERVER_URL + '/v1/triggers/article_of_the_day?lang=en')
+        # self.assertEquals(response.status_code, 200)
+        pass
