@@ -4,7 +4,8 @@
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   Copyright 2015 Ori Livneh <ori@wikimedia.org>,
-                 Stephen LaPorte <stephen.laporte@gmail.com>
+                 Stephen LaPorte <stephen.laporte@gmail.com>,
+                 Alangi Derick <alangiderick@gmail.com>
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -102,7 +103,7 @@ def test_setup():
     return flask.jsonify(data=ret)
 
 
-@app.route('/v1/wikipedia-feeds')
+@app.route('/v1/ifttt-feeds')
 def feeds():
     """Returns a list of all feeds(triggers) for Wikipedia IFTTT."""
     feeds = {'samples': {'feeds': {}}}

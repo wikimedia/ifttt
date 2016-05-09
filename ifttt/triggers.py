@@ -5,6 +5,7 @@
 
   Copyright 2015 Ori Livneh <ori@wikimedia.org>
                  Stephen LaPorte <stephen.laporte@gmail.com>
+                 Alangi Derick <alangiderick@gmail.com>
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -181,6 +182,8 @@ class BaseTriggerView(flask.views.MethodView):
         self.params = flask.request.get_json(force=True, silent=True) or {}
         self.limit = self.params.get('limit', DEFAULT_RESP_LIMIT)
         feed_identity = self.params.get('feed_identity')
+
+        #Gets paramters based on the GET request to return the corresponding RSS
         params = {"lang": request.args.get('lang'), "user": request.args.get('user'), \
                     "title": request.args.get('title')}
         feed_values = self.params.get("triggerFields", params)
@@ -200,7 +203,6 @@ class BaseTriggerView(flask.views.MethodView):
         feeds = render_template(feed_filename + '.xml', data=data)
         response = make_response(feeds)
         response.headers["Content-Type"] = "application/xml"
-    
         return response
 
 
