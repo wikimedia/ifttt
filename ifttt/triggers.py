@@ -160,7 +160,7 @@ class BaseTriggerView(flask.views.MethodView):
         trigger_values = self.params.get('triggerFields', {})
         for field, default_value in self.default_fields.items():
             self.fields[field] = trigger_values.get(field)
-            if self.fields[field] == '' and default_value not in TEST_FIELDS:
+            if not self.fields[field] and default_value not in TEST_FIELDS:
                 # TODO: Clean up
                 self.fields[field] = default_value
             if not self.fields[field]:
@@ -189,7 +189,7 @@ class BaseTriggerView(flask.views.MethodView):
         feed_values = self.params.get("triggerFields", params)
         for field, default_value in self.default_fields.items():
             self.fields[field] = feed_values.get(field)
-            if self.fields[field] == '' and default_value not in TEST_FIELDS:
+            if not self.fields[field] and default_value not in TEST_FIELDS:
                 self.fields[field] = default_value
             if not self.fields[field]:
                 if field in self.optional_fields and self.fields[field] is not None:
@@ -204,6 +204,10 @@ class BaseTriggerView(flask.views.MethodView):
         response = make_response(feeds)
         response.headers["Content-Type"] = "application/xml"
         return response
+
+    def tests(self):
+        """Test for all the triggers in the IFTTT web app"""
+        pass
 
 
 class BaseFeaturedFeedTriggerView(BaseTriggerView):

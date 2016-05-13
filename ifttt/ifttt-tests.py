@@ -21,33 +21,32 @@
 
 """
 
-from triggers import *
+import core, json, unittest
 
-from .__init__ import create_app
+from .utils import snake_case
 
-import requests, unittest
+from .triggers import (ArticleOfTheDay,
+                       PictureOfTheDay,
+                       WordOfTheDay,
+                       NewArticle)
 
-# URL of the server that the app is running on.
-# SERVER_URL = "http://127.0.0.1:5000"
+ALL_TRIGGERS = [ArticleOfTheDay,
+                PictureOfTheDay,
+                WordOfTheDay,
+                NewArticle]
 
-class AotdTestCase(unittest.TestCase):
-    """Test class for Article of the Day trigger"""
+app = core.app.test_client()
 
-    def setUp(self):
-        """Setup to run before each test case."""
-        # Create the app using the factory method.
-        self.app = create_app()
+def check_response(test_trigger):
+    """Checks the response to see if data property is trigger 
+    than 3 after each request."""
+    resp = app.post('/v1/triggers/%s' % test_trigger)
+    results = json.loads(resp.data)
+    assert results['data'] >= 3
 
-    def tearDown(self):
-        """Teardown to run after each test case."""
-        # Once all tests are run, return a pass to indicate
-        # all tests where run correctly without any errors.
-        pass
-
-    def test_aotd_trigger_with_get(self):
-        """Test suite for Article of the Day trigger which checks for 
-        proper respone code after the GET request"""
-
-        # response = requests.get(SERVER_URL + '/v1/triggers/article_of_the_day?lang=en')
-        # self.assertEquals(response.status_code, 200)
-        pass
+def test_for_triggers():
+    for trigger in ALL_TRIGGERS:
+        test_trigger = getattr(trigger, 'url_pattern', None)
+        if not test_trigger:
+            test_trigger = snake_case(trigger.__name__)
+        yield check_response, test_trigger
