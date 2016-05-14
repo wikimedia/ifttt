@@ -36,12 +36,13 @@ import werkzeug.contrib.cache
 
 from urllib import urlencode
 
-from .dal import (get_hashtags, 
+from dal import (get_hashtags, 
                   get_all_hashtags, 
                   get_category_members,
-                  get_category_member_revisions)
+                  get_category_member_revisions,
+                  get_article_list_revisions)
 
-from .utils import (select,
+from utils import (select,
                     url_to_uuid5,
                     utc_to_epoch,
                     utc_to_iso8601,
@@ -50,10 +51,12 @@ from .utils import (select,
 
 LOG_FILE = 'ifttt.log'
 CACHE_EXPIRATION = 5 * 60
+LONG_CACHE_EXPIRATION = 12 * 60 * 60
 DEFAULT_LANG = 'en'
 TEST_FIELDS = ['test', 'Coffee', 'ClueBot', 'All stub articles'] 
 # test properties currently mixed  with trigger default values
 DEFAULT_RESP_LIMIT = 50  # IFTTT spec
+MAXRADIUS = 10000  # Wikipedia's max geosearch radius
 
 _cur_dir = os.path.dirname(__file__)
 _cache_dir = os.path.join(_cur_dir, '../cache')
@@ -98,6 +101,44 @@ NAMESPACE_MAP = {
     -2: 'Media'
 }
 
+
+def add_images(get_data):
+    def with_images(*args, **kwargs):
+        data = get_data(*args, **kwargs)
+        titles = [item['title'] for item in data]
+        images = get_page_image(titles)
+        for i, res in enumerate(data):
+            title = res['title']
+            data[i]['media_url'] = images.get(title)
+            if not data[i]['media_url']:
+                data[i]['media_url'] = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Wikipedia%27s_W.svg/500px-Wikipedia%27s_W.svg.png'
+        return data
+    return with_images
+        
+
+def get_page_image(page_titles, lang=DEFAULT_LANG, timeout=LONG_CACHE_EXPIRATION):
+    page_images = {}
+    base_url = 'https://%s.wikipedia.org/w/api.php'
+    formatted_url = base_url % lang
+    params = {'action': 'query',
+              'prop': 'pageimages',
+              'pithumbsize': 500,
+              'format': 'json',
+              'pilimit': 50,
+              'titles': '|'.join([title.replace(' ', '_') for title in page_titles])}
+    params = urlencode(params)
+    url = '%s?%s' % (formatted_url, params)
+    resp = json.load(urllib2.urlopen(url))
+    pages = resp.get('query', {}).get('pages', {})
+    if not pages:
+        return None
+    for page_id in pages.keys():
+        page_title = pages[page_id]['title']
+        image_url = pages[page_id].get('thumbnail', {}).get('source')
+        page_images[page_title] = image_url
+    return page_images
+
+
 class BaseTriggerView(flask.views.MethodView):
 
     default_fields = {}
@@ -115,7 +156,7 @@ class BaseTriggerView(flask.views.MethodView):
         trigger_values = self.params.get('triggerFields', {})
         for field, default_value in self.default_fields.items():
             self.fields[field] = trigger_values.get(field)
-            if self.fields[field] == '' and default_value not in TEST_FIELDS:
+            if not self.fields[field]  and default_value not in TEST_FIELDS:
                 # TODO: Clean up
                 self.fields[field] = default_value
             if not self.fields[field]:
@@ -222,6 +263,7 @@ class ArticleOfTheDay(BaseFeaturedFeedTriggerView):
     default_fields = {'lang': DEFAULT_LANG}
     feed = 'featured'
 
+    @add_images
     def get_data(self):
         self.wiki = '%s.wikipedia.org' % self.fields['lang']
         return super(ArticleOfTheDay, self).get_data()
@@ -301,7 +343,8 @@ class NewHashtag(BaseTriggerView):
     default_fields = {'lang': DEFAULT_LANG, 'hashtag': 'test'}
     optional_fields = ['hashtag']
     url_pattern = 'new_hashtag'
-
+    
+    @add_images
     def get_data(self):
         self.wiki = '%s.wikipedia.org' % self.fields['lang']
         self.tag = self.fields['hashtag']
@@ -346,6 +389,7 @@ class NewCategoryMember(BaseTriggerView):
     """Trigger each time a new article appears in a category"""
     default_fields = {'lang': DEFAULT_LANG, 'category': 'All stub articles'}
     
+    @add_images
     def get_data(self):
         self.lang = self.fields['lang']
         self.category = self.fields['category']
@@ -387,7 +431,8 @@ class CategoryMemberRevisions(BaseTriggerView):
     """Trigger for revisions to articles within a specified category."""
 
     default_fields = {'lang': DEFAULT_LANG, 'category': 'All stub articles'}
-
+    
+    @add_images
     def get_data(self):
         self.lang = self.fields['lang']
         self.category = self.fields['category']
@@ -440,6 +485,7 @@ class ArticleRevisions(BaseAPIQueryTriggerView):
         self.query_params['titles'] = self.fields['title']
         return super(ArticleRevisions, self).get_query()
 
+    @add_images
     def get_data(self):
         api_resp = self.get_query()
         try:
@@ -461,6 +507,56 @@ class ArticleRevisions(BaseAPIQueryTriggerView):
         return ret
 
 
+class GeoRevisions(BaseAPIQueryTriggerView):
+    """Trigger for revisions in a geographic area"""
+
+    default_fields = {'lang': DEFAULT_LANG, 
+                      'location': {'lat': 37.34347580224911,
+                                   'lng': -121.89543345662234,
+                                   'radius': 10000}}
+    query_params = {'action': 'query',
+                    'list': 'geosearch',
+                    'gslimit': 500,
+                    'format': 'json'}
+
+    def get_query(self):
+        self.lang = self.fields['lang']
+        lat = self.fields['location']['lat']
+        lon = self.fields['location']['lng']
+        if self.fields['location']['radius'] < MAXRADIUS:
+            radius = self.fields['location']['radius']
+        else:
+            radius = MAXRADIUS
+        self.wiki = '%s.wikipedia.org' % self.fields['lang']
+        self.query_params['gscoord'] = '%s|%s' % (lat, lon)
+        self.query_params['gsradius'] = radius
+        return super(GeoRevisions, self).get_query()
+
+    def get_data(self):
+        api_resp = self.get_query()
+        titles = [article['title'] for article in api_resp['query']['geosearch']]
+        cache_name = str(titles)
+        revisions = get_article_list_revisions(titles)
+        return [self.parse_result(rev) for rev in revisions]
+
+    def parse_result(self, rev):
+        date = datetime.datetime.strptime(rev['rc_timestamp'], '%Y%m%d%H%M%S')
+        date = date.isoformat() + 'Z'
+        ret = {'date': date,
+               'url': 'https://%s/w/index.php?diff=%s&oldid=%s' %
+                      (self.wiki,
+                       int(rev['rc_this_oldid']),
+                       int(rev['rc_last_oldid'])),
+               'user': rev['rc_user_text'],
+               'size': rev['rc_new_len'] - rev['rc_old_len'],
+               'comment': rev['rc_comment'],
+               'title': rev['rc_title']}
+        ret['created_at'] = date
+        ret['meta'] = {'id': url_to_uuid5(ret['url']),
+                       'timestamp': iso8601_to_epoch(date)}
+        return ret
+
+
 class UserRevisions(BaseAPIQueryTriggerView):
     """Trigger for revisions from a specified user."""
 
@@ -477,6 +573,7 @@ class UserRevisions(BaseAPIQueryTriggerView):
         self.query_params['ucuser'] = self.fields['user']
         return super(UserRevisions, self).get_query()
 
+    @add_images
     def get_data(self):
         api_resp = self.get_query()
         try:
