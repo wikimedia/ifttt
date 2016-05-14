@@ -19,23 +19,20 @@
 
 """
 
-import os
+from flask import current_app as app
+
 import oursql
 
 DEFAULT_HOURS = 1
 DEFAULT_LANG = 'en'
 DEFAULT_LIMIT = 50
 
-DB_CONFIG_PATH = os.path.expanduser('~/replica.my.cnf')  # Available by default on Labs
 
-HT_DB_HOST = 's1.labsdb'  # The hashtag table is on the same server as the enwiki db replica
-HT_DB_NAME = 's52490__hashtags_p'
-
-
-def ht_db_connect(read_default_file=DB_CONFIG_PATH):
-    connection = oursql.connect(db=HT_DB_NAME,
-                                host=HT_DB_HOST,
-                                read_default_file=read_default_file,
+def ht_db_connect():
+    connection = oursql.connect(db=app.config['HT_DB_NAME'],
+                                host=app.config['HT_DB_HOST'],
+                                user=app.config['DB_USER'],
+                                passwd=app.config['DB_PASSWORD'],
                                 charset=None,
                                 use_unicode=False)
     return connection
@@ -46,9 +43,9 @@ def run_query(query, query_params, lang):
     db_host = lang + 'wiki.labsdb'
     connection = oursql.connect(db=db_title,
                                 host=db_host,
-                                read_default_file=DB_CONFIG_PATH,
-                                charset=None,
-                                use_unicode=False)
+                                user=app.config['DB_USER'],
+                                passwd=app.config['DB_PASSWORD'],
+                                charset=None)
     cursor = connection.cursor(oursql.DictCursor)
     cursor.execute(query, query_params)
     ret = cursor.fetchall()
