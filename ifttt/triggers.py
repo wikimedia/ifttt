@@ -205,11 +205,6 @@ class BaseTriggerView(flask.views.MethodView):
         response.headers["Content-Type"] = "application/xml"
         return response
 
-    def tests(self):
-        """Test for all the triggers in the IFTTT web app"""
-        pass
-
-
 class BaseFeaturedFeedTriggerView(BaseTriggerView):
     """Generic view for IFTTT Triggers based on FeaturedFeeds."""
 
