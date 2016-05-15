@@ -160,7 +160,7 @@ class BaseTriggerView(flask.views.MethodView):
         trigger_values = self.params.get('triggerFields', {})
         for field, default_value in self.default_fields.items():
             self.fields[field] = trigger_values.get(field)
-            if not self.fields[field]  and default_value not in TEST_FIELDS:
+            if not self.fields[field] and default_value not in TEST_FIELDS:
                 # TODO: Clean up
                 self.fields[field] = default_value
             if not self.fields[field]:
