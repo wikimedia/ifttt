@@ -38,11 +38,17 @@ ALL_TRIGGERS = [ArticleOfTheDay,
 app = core.app.test_client()
 
 def check_response(test_trigger):
-    """Checks the response to see if data property is trigger 
-    than 3 after each request."""
+    """Checks the response to see if the data property of the trigger 
+    is greater than 3 after the request."""
+    resp_test_value = 3
+
+    # UserRevision and ArticleRevisions fails the test 
+    # since it maybe needs some custom data to be sent 
+    # in the post request.
     resp = app.post('/v1/triggers/%s' % test_trigger)
+
     results = json.loads(resp.data)
-    assert results['data'] >= 3
+    assert results['data'] >= resp_test_value
 
 def test_for_triggers():
     for trigger in ALL_TRIGGERS:

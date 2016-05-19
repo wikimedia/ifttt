@@ -181,14 +181,14 @@ class BaseTriggerView(flask.views.MethodView):
         self.fields = {}
         self.params = flask.request.get_json(force=True, silent=True) or {}
         self.limit = self.params.get('limit', DEFAULT_RESP_LIMIT)
-        feed_identity = self.params.get('feed_identity')
+        trigger_identity = self.params.get('trigger_identity')
 
         #Gets paramters based on the GET request to return the corresponding RSS
         params = {"lang": request.args.get('lang'), "user": request.args.get('user'), \
                     "title": request.args.get('title')}
-        feed_values = self.params.get("triggerFields", params)
+        trigger_values = self.params.get("triggerFields", params)
         for field, default_value in self.default_fields.items():
-            self.fields[field] = feed_values.get(field)
+            self.fields[field] = trigger_values.get(field)
             if not self.fields[field] and default_value not in TEST_FIELDS:
                 self.fields[field] = default_value
             if not self.fields[field]:
@@ -196,7 +196,7 @@ class BaseTriggerView(flask.views.MethodView):
                     self.fields[field] = ''
                 else:
                     flask.abort(400)
-        logging.info('%s: %s' % (self.__class__.__name__, feed_identity))
+        logging.info('%s: %s' % (self.__class__.__name__, trigger_identity))
         data = self.get_data()
         data = data[:self.limit]
         
@@ -537,7 +537,7 @@ class ArticleRevisions(BaseAPIQueryTriggerView):
                'user': revision['user'],
                'size': revision['size'],
                'comment': revision['comment'],
-               'title': self.params.get("triggerFields", "title")}
+               'title': self.fields['title']}
         ret.update(super(ArticleRevisions, self).parse_result(ret))
         return ret
 
@@ -621,7 +621,7 @@ class UserRevisions(BaseAPIQueryTriggerView):
         ret = {'date': contrib['timestamp'],
                'url': 'https://%s/w/index.php?diff=%s&oldid=%s' %
                       (self.wiki, contrib['revid'], contrib['parentid']),
-               'user': self.params.get("triggerFields", "user"),
+               'user': self.fields['user'],
                'size': contrib['size'],
                'comment': contrib['comment'],
                'title': contrib['title']}
