@@ -1,8 +1,8 @@
-# Wikipedia and Wikidata channels for IFTTT
+# Wikipedia channel for IFTTT
 
 An [IFTTT](https://ifttt.com/recipes) channel built for [Wikimedia Tool Labs](http://tools.wmflabs.org/).
 
-It currently supports the following triggers for Wikipedia:
+It currently supports the following triggers:
 
  - Picture of the day
  - Article of the day
@@ -14,8 +14,55 @@ It currently supports the following triggers for Wikipedia:
  - Page added to category
  - Page updated in category
 
-And also the following triggers for Wikidata:
- - Coming soon...
+# [WIP] Deploying to Wikimedia Labs
+
+We are in the process of moving the IFTTT channel to a standalone service on Wikimedia Labs from tool labs. The new deployment process is explained here, and might evolve.
+
+The staging server for dev(ifttt-dev channel) is setup at ifttt-staging-01.eqiad.wmflabs, the public endpoint is hosted at ifttt-dev.wmflabs.org
+The prod server will be at ifttt-01.eqiad.wmflabs(ifttt prod channel), public endpoint is at ifttt.wmflabs.org
+
+To create your own test instance, create an instance in the ifttt labs project, and apply the role::ifttt::staging puppet role to initialize the repo, and have necessary packages installed on the server. Add your host to the STAGES config in the fabfile.
+
+* To list all fabric actions: `fab -list`
+```
+ifttt [master] fab -list
+Available commands:
+
+    deploy             Deploys updated code to the web server
+    initialize_server  Setup an initial deployment on a fresh host.
+    production
+    restart_ifttt      Restarts the ifttt web sersive
+    staging
+```
+
+* To initialize server (Needs to be done only the first time after setting up server through puppet):
+`fab <staging|production> initialize_server`.
+```
+ifttt [master] fab staging initialize_server --hide everything --show user
+Setting up the staging server
+Updating ifttt source repo
+Uploading config files to remote host(s)
+Upgrading requirements
+
+Done.
+Disconnecting from madhuvishy@ifttt-staging.ifttt.eqiad.wmflabs... done.
+```
+
+* To deploy changes: `fab <staging|production> deploy`.
+```
+ifttt [master] ⚡ fab staging deploy --hide everything --show user
+Deploying to staging
+Updating ifttt source repo
+Uploading config files to remote host(s)
+Upgrading requirements
+Restarting ifttt
+
+Done.
+Disconnecting from madhuvishy@ifttt-staging.ifttt.eqiad.wmflabs... done.
+```
+
+* To restart the service: `fab <staging|production> restart_ifttt`
+
 
 # License
 

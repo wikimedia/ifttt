@@ -45,10 +45,10 @@ def check_response(test_trigger):
     # UserRevision and ArticleRevisions fails the test 
     # since it maybe needs some custom data to be sent 
     # in the post request.
-    resp = app.post('/v1/triggers/%s' % test_trigger)
+    resp = app.post('/ifttt/v1/triggers/%s' % test_trigger)
 
     results = json.loads(resp.data)
-    assert results['data'] >= resp_test_value
+    assert len(results['data']) >= resp_test_value
 
 def test_for_triggers():
     for trigger in ALL_TRIGGERS:
