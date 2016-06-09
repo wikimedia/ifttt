@@ -1,4 +1,4 @@
-# Wikipedia channel for IFTTT
+# Wikipedia and Wikidata channels for IFTTT
 
 An [IFTTT](https://ifttt.com/recipes) channel built for [Wikimedia Tool Labs](http://tools.wmflabs.org/).
 
@@ -13,6 +13,7 @@ It currently supports the following triggers:
  - Updates from user
  - Page added to category
  - Page updated in category
+ - Updates to an item
 
 # [WIP] Deploying to Wikimedia Labs
 

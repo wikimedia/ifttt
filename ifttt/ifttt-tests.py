@@ -28,12 +28,19 @@ from .utils import snake_case
 from .triggers import (ArticleOfTheDay,
                        PictureOfTheDay,
                        WordOfTheDay,
-                       NewArticle)
+                       ArticleRevisions,
+                       UserRevisions,
+                       NewArticle,
+                       NewHashtag,
+                       NewCategoryMember,
+                       CategoryMemberRevisions,
+                       ItemRevisions)
 
 ALL_TRIGGERS = [ArticleOfTheDay,
                 PictureOfTheDay,
                 WordOfTheDay,
-                NewArticle]
+                NewArticle,
+                ItemRevisions]
 
 app = core.app.test_client()
 

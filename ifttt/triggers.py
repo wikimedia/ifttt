@@ -185,7 +185,7 @@ class BaseTriggerView(flask.views.MethodView):
 
         #Gets paramters based on the GET request to return the corresponding RSS
         params = {"lang": request.args.get('lang'), "user": request.args.get('user'), \
-                    "title": request.args.get('title')}
+                    "title": request.args.get('title'), "itemid": request.args.get('itemid')}
         trigger_values = self.params.get("triggerFields", params)
         for field, default_value in self.default_fields.items():
             self.fields[field] = trigger_values.get(field)
