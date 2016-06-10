@@ -25,6 +25,7 @@ import core, json, unittest
 
 from .utils import snake_case
 
+# Import all triggers in the app
 from .triggers import (ArticleOfTheDay,
                        PictureOfTheDay,
                        WordOfTheDay,
@@ -36,27 +37,28 @@ from .triggers import (ArticleOfTheDay,
                        CategoryMemberRevisions,
                        ItemRevisions)
 
+# A list of triggers to be tested
 ALL_TRIGGERS = [ArticleOfTheDay,
                 PictureOfTheDay,
                 WordOfTheDay,
                 NewArticle,
-                ItemRevisions]
+                ItemRevisions,
+                ArticleRevisions,
+                UserRevisions]
 
 app = core.app.test_client()
 
 def check_response(test_trigger):
     """Checks the response to see if the data property of the trigger 
     is greater than 3 after the request."""
-    resp_test_value = 3
+    RESP_TEST_VALUE = 3
 
-    # UserRevision and ArticleRevisions fails the test 
-    # since it maybe needs some custom data to be sent 
-    # in the post request.
     resp = app.post('/ifttt/v1/triggers/%s' % test_trigger)
 
     results = json.loads(resp.data)
-    assert len(results['data']) >= resp_test_value
+    assert len(results['data']) >= RESP_TEST_VALUE
 
+# Routine to test the triggers one after the other
 def test_for_triggers():
     for trigger in ALL_TRIGGERS:
         test_trigger = getattr(trigger, 'url_pattern', None)

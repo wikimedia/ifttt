@@ -160,7 +160,7 @@ class BaseTriggerView(flask.views.MethodView):
         trigger_values = self.params.get('triggerFields', {})
         for field, default_value in self.default_fields.items():
             self.fields[field] = trigger_values.get(field)
-            if not self.fields[field] and default_value not in TEST_FIELDS:
+            if not self.fields[field] or default_value not in TEST_FIELDS:
                 # TODO: Clean up
                 self.fields[field] = default_value
             if not self.fields[field]:
@@ -175,7 +175,7 @@ class BaseTriggerView(flask.views.MethodView):
 
     def get(self):
         """Handle GET requests."""
-        # build the feed's file name
+        # build the feed's file name dynamically
         feed_filename = snake_case(self.__class__.__name__)
 
         self.fields = {}
@@ -183,13 +183,13 @@ class BaseTriggerView(flask.views.MethodView):
         self.limit = self.params.get('limit', DEFAULT_RESP_LIMIT)
         trigger_identity = self.params.get('trigger_identity')
 
-        #Gets paramters based on the GET request to return the corresponding RSS
+        # Gets paramters based on the GET request to return the corresponding RSS
         params = {"lang": request.args.get('lang'), "user": request.args.get('user'), \
                     "title": request.args.get('title'), "itemid": request.args.get('itemid')}
         trigger_values = self.params.get("triggerFields", params)
         for field, default_value in self.default_fields.items():
             self.fields[field] = trigger_values.get(field)
-            if not self.fields[field] and default_value not in TEST_FIELDS:
+            if not self.fields[field] or default_value not in TEST_FIELDS:
                 self.fields[field] = default_value
             if not self.fields[field]:
                 if field in self.optional_fields and self.fields[field] is not None:
@@ -658,7 +658,7 @@ class UserRevisions(BaseAPIQueryTriggerView):
 class ItemRevisions(BaseWikidataAPIQueryTriggerView):
     """Trigger for revisions to a specified Wikidata item."""
 
-    default_fields = {'lang': DEFAULT_LANG, 'itemid': 'Q12345'}
+    default_fields = {'itemid': 'Q12345'}
     query_params = {'action': 'query',
                     'prop': 'revisions',
                     'titles': None,
