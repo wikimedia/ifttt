@@ -64,7 +64,6 @@ Disconnecting from madhuvishy@ifttt-staging.ifttt.eqiad.wmflabs... done.
 
 * To restart the service: `fab <staging|production> restart_ifttt`
 
-
 # License
 
 Copyright 2015 Ori Livneh <ori@wikimedia.org>,
