@@ -11,16 +11,16 @@
 			<li>{{ feed }}&nbsp;&nbsp;
 
 				{% if feed == "User revisions" %}
-					<a href="http://localhost:5000/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&user=Alangi_derick"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
+					<a href="http://tools.wmflabs.org/ifttt-testing/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&user=Alangi_derick"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
 
 				{% elif feed == "Article revisions" %}
-					<a href="http://localhost:5000/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&title=Coffee"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
+					<a href="http://tools.wmflabs.org/ifttt-testing/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&title=Coffee"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
 
 				{% elif feed == "Item revisions" %}
-					<a href="http://localhost:5000/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&itemid=Q12345"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
+					<a href="http://tools.wmflabs.org/ifttt-testing/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&itemid=Q12345"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
 
 				{% else %}
-					<a href="http://localhost:5000/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
+					<a href="http://tools.wmflabs.org/ifttt-testing/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
 				{% endif %}
 			</li><br />
 		{% endfor %}
