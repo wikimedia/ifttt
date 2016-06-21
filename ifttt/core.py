@@ -97,7 +97,7 @@ def validate_channel_key():
         flask.abort(401)
 
 
-@app.route('/v1/test/setup', methods=['POST'])
+@app.route('/ifttt/v1/test/setup', methods=['POST'])
 def test_setup():
     """Required by the IFTTT endpoint test suite."""
     ret = {'samples': {'triggers': {}}}
@@ -108,7 +108,7 @@ def test_setup():
     return flask.jsonify(data=ret)
 
 
-@app.route('/v1/rss-feeds')
+@app.route('/ifttt/v1/rss-feeds')
 def feeds():
     """Returns a list of all feeds(triggers) for Wikipedia IFTTT."""
     feeds = {'samples': {'feeds': {}}}
@@ -122,7 +122,7 @@ def feeds():
     return render_template('feeds.html', data=feeds)
 
 
-@app.route('/v1/status')
+@app.route('/ifttt/v1/status')
 def status():
     """Return HTTP 200 and an empty body, as required by the IFTTT spec."""
     return ''
@@ -132,5 +132,5 @@ for view_class in ALL_TRIGGERS:
     slug = getattr(view_class, 'url_pattern', None)
     if not slug:
         slug = snake_case(view_class.__name__)
-    app.add_url_rule('/v1/triggers/%s' % slug,
+    app.add_url_rule('/ifttt/v1/triggers/%s' % slug,
                      view_func=view_class.as_view(slug))
