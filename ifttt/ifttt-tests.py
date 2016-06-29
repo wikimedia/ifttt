@@ -53,7 +53,7 @@ def check_response(test_trigger):
     is greater than 3 after the request."""
     RESP_TEST_VALUE = 3
 
-    resp = app.post('/ifttt/v1/triggers/%s' % test_trigger)
+    resp = app.post('/v1/triggers/%s' % test_trigger)
 
     results = json.loads(resp.data)
     assert len(results['data']) >= RESP_TEST_VALUE
