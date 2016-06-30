@@ -44,8 +44,7 @@ ALL_TRIGGERS = [ArticleOfTheDay,
                 NewArticle,
                 ItemRevisions,
                 ArticleRevisions,
-                UserRevisions,
-                CategoryMemberRevisions]
+                UserRevisions]
 
 app = core.app.test_client()
 

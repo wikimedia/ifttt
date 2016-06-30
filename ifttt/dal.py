@@ -31,8 +31,8 @@ DEFAULT_LIMIT = 50
 def ht_db_connect():
     connection = oursql.connect(db=app.config['HT_DB_NAME'],
                                 host=app.config['HT_DB_HOST'],
-                                #user=app.config['DB_USER'],
-                                #passwd=app.config['DB_PASSWORD'],
+                                user=app.config['DB_USER'],
+                                passwd=app.config['DB_PASSWORD'],
                                 charset=None,
                                 use_unicode=False)
     return connection
