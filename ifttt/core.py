@@ -57,7 +57,7 @@ ALL_TRIGGERS = [ArticleOfTheDay,
 
 app = flask.Flask(__name__)
 # Load default config first
-# app.config.from_pyfile('../default.cfg', silent=True)
+app.config.from_pyfile('../default.cfg', silent=True)
 # Override defaults if ifttt.cfg is present
 app.config.from_pyfile('../ifttt.cfg', silent=True)
 
