@@ -23,6 +23,7 @@
 
 import flask
 from flask import request, render_template, g
+from flask import redirect, url_for
 from flask.ext.bootstrap import Bootstrap
 
 from .utils import snake_case
@@ -76,6 +77,18 @@ def unauthorized(e):
     """Issue an HTTP 401 Unauthorized response with a JSON body."""
     error = {'message': 'Unauthorized'}
     return flask.jsonify(errors=[error]), 401
+
+@app.errorhandler(404)
+def page_not_found(e):
+    """The page you are looking for is not found on the server"""
+    g.skip_after_request = True
+    return render_template('error_pages/404.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    """There was an internal server error"""
+    g.skip_after_request = True
+    return render_template('error_pages/500.html'), 500
 
 
 @app.after_request
