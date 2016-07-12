@@ -1,33 +1,54 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<title>Wikipedia Feeds</title>
-</head>
-<body>
 
-	<h1>Wikipedia RSS feeds for IFTTT</h1>
-	<ul>
-		{% for feed in data.samples.feeds %}
-			<li>{{ feed }}&nbsp;&nbsp;
+{% extends "bootstrap/base.html" %}
 
-				{% if feed == "User revisions" %}
-					<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&user=Alangi_derick"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
+{% block title %} Wikipedia RSS feeds {% endblock %}
 
-				{% elif feed == "Article revisions" %}
-					<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&title=Coffee"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
+{% block navbar %}
+	<div class="navbar navbar-inverse" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/rss-feeds">Wikipedia RSS feeds for IFTTT</a>
+			</div>
+			<div class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li><a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/rss-feeds">Home</a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+{% endblock %}
 
-				{% elif feed == "Item revisions" %}
-					<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&itemid=Q12345"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
+{% block content %}
+	<div class="container">
+		<ul>
+			{% for feed in data.samples.feeds %}
+				<div class="page-header">
+					<h1>{{ feed }}&nbsp;&nbsp;
 
-				{% elif feed == "New hashtag" %}
-					<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&hashtag=test"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
+						{% if feed == "User revisions" %}
+							<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&user=Alangi_derick"><img src="{{url_for('static', filename='rss.png')}}" width="30px" height="30px"></a>
 
-				{% else %}
-					<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en"><img src="{{url_for('static', filename='rss.png')}}" width="20px" height="20px"></a>
-				{% endif %}
-			</li><br />
-		{% endfor %}
-	</ul>
-	
-</body>
-</html>
+						{% elif feed == "Article revisions" %}
+							<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&title=Coffee"><img src="{{url_for('static', filename='rss.png')}}" width="30px" height="30px"></a>
+
+						{% elif feed == "Item revisions" %}
+							<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&itemid=Q12345"><img src="{{url_for('static', filename='rss.png')}}" width="30px" height="30px"></a>
+
+						{% elif feed == "New hashtag" %}
+							<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&hashtag=test"><img src="{{url_for('static', filename='rss.png')}}" width="30px" height="30px"></a>
+
+						{% else %}
+							<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en"><img src="{{url_for('static', filename='rss.png')}}" width="30px" height="30px"></a>
+						{% endif %}
+					</h1><br />
+				</div>
+			{% endfor %}
+		</ul>
+	</div>
+{% endblock %}

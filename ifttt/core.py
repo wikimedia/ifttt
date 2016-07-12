@@ -23,6 +23,7 @@
 
 import flask
 from flask import request, render_template, g
+from flask.ext.bootstrap import Bootstrap
 
 from .utils import snake_case
 from .triggers import (ArticleOfTheDay,
@@ -56,6 +57,7 @@ ALL_TRIGGERS = [ArticleOfTheDay,
                 ItemRevisions]
 
 app = flask.Flask(__name__)
+bootstrap = Bootstrap(app)
 # Load default config first
 app.config.from_pyfile('../default.cfg', silent=True)
 # Override defaults if ifttt.cfg is present
@@ -82,6 +84,7 @@ def force_content_type(response):
     but IFTTT expects one anyway. We have to twist Flask's arm to get it to
     break the spec."""
     if g.get('skip_after_request'):
+        response.headers['Content-Type'] = 'text/html; charset=utf-8'
         return response
     response.headers['Content-Type'] = 'application/json; charset=utf-8'
     return response
