@@ -108,6 +108,8 @@ def validate_channel_key():
     """Verify that the 'IFTTT-Channel-Key' header is present on each request
     and that its value matches the channel key we got from IFTTT. If a request
     fails this check, we reject it with HTTP 401."""
+    if flask.request.method == 'GET':
+        return
     channel_key = flask.request.headers.get('IFTTT-Channel-Key')
     if not app.debug and channel_key != app.config.get('CHANNEL_KEY'):
         flask.abort(401)
