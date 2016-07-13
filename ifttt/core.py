@@ -24,7 +24,7 @@
 import flask
 from flask import request, render_template, g
 from flask import redirect, url_for
-from flask.ext.bootstrap import Bootstrap
+from flask_bootstrap import Bootstrap
 
 from .utils import snake_case
 from .triggers import (ArticleOfTheDay,
