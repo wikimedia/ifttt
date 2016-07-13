@@ -3,7 +3,22 @@
 {% block title %} Wikipedia RSS feeds {% endblock %}
 
 {% block navbar %}
-	<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+	<style type="text/css">
+		h4 {
+			color:#3333ff;
+		}
+		.navbar {
+			background-color:#e4e4e4;
+		}
+		.navbar-brand {
+			position: relative;
+			top: -10px;
+		}
+		.navbar-toggle  {
+		    height: 50px;
+		}
+	</style>
+	<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -12,7 +27,7 @@
 					<span class="icon-bar"></span>
 					<span class="icon-bar"></span>
 				</button>
-				<a class="navbar-brand" href="{{ url_for('feeds', _external=True) }}"><strong><h4>Wikipedia RSS feeds for IFTTT</h4></strong></a>
+				<a class="navbar-brand" href="{{ url_for('feeds', _external=True) }}"><strong><h4><img src="{{url_for('static', filename='wmftlabs.png')}}" width="40px" height="40px">&nbsp;&nbsp;Wikipedia RSS feeds for IFTTT</h4></strong></a>
 			</div>
 			<div class="navbar-collapse collapse">
 				<ul class="nav navbar-nav pull-right">
@@ -22,7 +37,7 @@
 				</ul>
 			</div>
 		</div>
-	</div>
+	</nav>
 {% endblock %}
 
 {% block content %}
