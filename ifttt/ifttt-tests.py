@@ -49,87 +49,24 @@ ALL_TRIGGERS = [ArticleOfTheDay,
 
 app = core.app.test_client()
 
-def check_response(test_trigger):
+def check_response(test_trigger, test_params):
     """Checks the response to see if the data property of the trigger 
     is greater than 3 after the request."""
     RESP_TEST_VALUE = 3
 
-    # Test for Article Revisions
-    if test_trigger == 'article_revisions':
-      resp = app.post('/ifttt/v1/triggers/%s' % test_trigger, 
-        data=json.dumps({"triggerFields":{"lang":"en","title":"Coffee"}}), 
+    resp = app.post('/ifttt/v1/triggers/%s' % test_trigger, 
+        data=json.dumps({"triggerFields": test_params}), 
         content_type='application/json')
 
-      results = json.loads(resp.data)
-      assert len(results['data']) >= RESP_TEST_VALUE
+    results = json.loads(resp.data)
+    assert len(results['data']) >= RESP_TEST_VALUE
 
-    # Testing for User Revisions
-    if test_trigger == 'user_revisions':
-      resp = app.post('/ifttt/v1/triggers/%s' % test_trigger, 
-        data=json.dumps({"triggerFields":{"lang":"en","user":"ClueBot"}}), 
-        content_type='application/json')
-
-      results = json.loads(resp.data)
-      assert len(results['data']) >= RESP_TEST_VALUE
-
-    # Testing for Item Revisions
-    if test_trigger == 'item_revisions':
-      resp = app.post('/ifttt/v1/triggers/%s' % test_trigger, 
-        data=json.dumps({"triggerFields":{"itemid":"Q12345"}}), 
-        content_type='application/json')
-
-      results = json.loads(resp.data)
-      assert len(results['data']) >= RESP_TEST_VALUE
-
-    # Testing for AotD
-    if test_trigger == 'article_of_the_day':
-      resp = app.post('/ifttt/v1/triggers/%s' % test_trigger, 
-        data=json.dumps({"triggerFields":{"lang":"en"}}), 
-        content_type='application/json')
-
-      results = json.loads(resp.data)
-      assert len(results['data']) >= RESP_TEST_VALUE
-      
-    # Testing for WotD (Word of the Day)
-    if test_trigger == 'word_of_the_day':
-      resp = app.post('/ifttt/v1/triggers/%s' % test_trigger, 
-        data=json.dumps({"triggerFields":{"lang":"en"}}), 
-        content_type='application/json')
-
-      results = json.loads(resp.data)
-      assert len(results['data']) >= RESP_TEST_VALUE
-
-    # Testing for New Article
-    if test_trigger == 'new_article':
-      resp = app.post('/ifttt/v1/triggers/%s' % test_trigger, 
-        data=json.dumps({"triggerFields":{"lang":"en"}}), 
-        content_type='application/json')
-
-      results = json.loads(resp.data)
-      assert len(results['data']) >= RESP_TEST_VALUE
-
-    # Testing for PotD (Picture of the Day)
-    if test_trigger == 'picture_of_the_day':
-      resp = app.post('/ifttt/v1/triggers/%s' % test_trigger, 
-        data=json.dumps({"triggerFields":{"lang":"en"}}), 
-        content_type='application/json')
-
-      results = json.loads(resp.data)
-      assert len(results['data']) >= RESP_TEST_VALUE
-
-    # Testing for New hash tag
-    if test_trigger == 'new_hashtag':
-      resp = app.post('/ifttt/v1/triggers/%s' % test_trigger, 
-        data=json.dumps({"triggerFields":{"lang":"en","hashtag":"test"}}), 
-        content_type='application/json')
-
-      results = json.loads(resp.data)
-      assert len(results['data']) >= RESP_TEST_VALUE
 
 # Routine to test the triggers one after the other
 def test_for_triggers():
     for trigger in ALL_TRIGGERS:
         test_trigger = getattr(trigger, 'url_pattern', None)
+        test_params = getattr(trigger, 'default_fields', None)
         if not test_trigger:
             test_trigger = snake_case(trigger.__name__)
-        yield check_response, test_trigger
+        yield check_response, test_trigger, test_params
