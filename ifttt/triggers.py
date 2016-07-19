@@ -451,7 +451,7 @@ class NewHashtag(BaseTriggerView):
 
 class NewCategoryMember(BaseTriggerView):
     """Trigger each time a new article appears in a category"""
-    default_fields = {'lang': DEFAULT_LANG, 'category': 'All stub articles'}
+    default_fields = {'lang': DEFAULT_LANG, 'category': 'All articles lacking sources'}
     
     @add_images
     def get_data(self):
@@ -494,7 +494,7 @@ class NewCategoryMember(BaseTriggerView):
 class CategoryMemberRevisions(BaseTriggerView):
     """Trigger for revisions to articles within a specified category."""
 
-    default_fields = {'lang': DEFAULT_LANG, 'category': 'All stub articles'}
+    default_fields = {'lang': DEFAULT_LANG, 'category': 'All articles lacking sources'}
     
     @add_images
     def get_data(self):
