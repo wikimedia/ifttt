@@ -21,7 +21,7 @@
 
 """
 
-import core, json, unittest
+import core, json
 
 from .utils import snake_case
 
@@ -48,6 +48,7 @@ ALL_TRIGGERS = [ArticleOfTheDay,
                 UserRevisions]
 
 app = core.app.test_client()
+app.application.debug = True
 
 def check_response(test_trigger, test_params):
     """Checks the response to see if the data property of the trigger 
