@@ -57,7 +57,7 @@ LOG_FILE = 'ifttt.log'
 CACHE_EXPIRATION = 5 * 60
 LONG_CACHE_EXPIRATION = 12 * 60 * 60
 DEFAULT_LANG = 'en'
-TEST_FIELDS = ['test', 'Coffee', 'ClueBot', 'All stub articles', 'Q12345'] 
+TEST_FIELDS = ['test', 'Coffee', 'ClueBot', 'All articles lacking sources', 'Q12345'] 
 # test properties currently mixed  with trigger default values
 DEFAULT_RESP_LIMIT = 50  # IFTTT spec
 MAXRADIUS = 10000  # Wikipedia's max geosearch radius
