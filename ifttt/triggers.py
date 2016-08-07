@@ -313,7 +313,11 @@ class BaseWikidataSparqlQueryTriggerView(BaseTriggerView):
         return resp
 
     def parse_result(self, result):
-        return
+        meta_id = url_to_uuid5(result['url'])
+        created_at = result['date']
+        ts = iso8601_to_epoch(result['date'])
+        return {'created_at': created_at,
+                'meta': {'id': meta_id, 'timestamp': ts}}
 
     def get_data(self):
         resp = self.get_query()
@@ -746,6 +750,9 @@ class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
         return map(self.parse_result, subject)
 
     def parse_result(self, subject):
-        ret = {'user': subject['entity']['value'],
+        ret = {'date': "2016-06-17T00:34:15Z",
+               'url': "https://query.wikidata.org/sparql",
+               'user': subject['entity']['value'],
                'year': subject['year']['value']}
+        ret.update(super(PopularPersonsBirthday, self).parse_result(ret))
         return ret
