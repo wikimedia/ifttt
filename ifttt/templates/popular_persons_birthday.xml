@@ -9,6 +9,7 @@
             <item>
                 <user>Person: {{feeds.user}}</user>
                 <date>Year of birth: {{feeds.year}}</date>
+                <comment>Date of birth: {{feeds.dob}}</comment>
             </item>
         {% endfor %}
     </channel>

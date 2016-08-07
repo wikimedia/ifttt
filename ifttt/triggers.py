@@ -38,6 +38,7 @@ import feedparser
 import werkzeug.contrib.cache
 
 from urllib import urlencode
+from datetime import datetime
 
 from dal import (get_hashtags, 
                   get_all_hashtags, 
@@ -724,7 +725,7 @@ class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
     """Trigger for revisions to a specified Wikidata item."""
 
     default_fields = {'lang': DEFAULT_LANG}
-    query = """SELECT ?entity (year(?date) as ?year) 
+    query = """SELECT ?entity ?date (year(?date) as ?year) 
                 WHERE 
                 {   
                     ?entityS wdt:P569 ?date .   
@@ -750,8 +751,9 @@ class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
         return map(self.parse_result, subject)
 
     def parse_result(self, subject):
-        ret = {'date': "2016-06-17T00:34:15Z",
-               'url': "https://query.wikidata.org/sparql",
+        ret = {'date': subject['date']['value'],
+               'dob': subject['date']['value'],
+               'url': "https://query.wikidata.org/sparql?query=" + self.query_params['query'],
                'user': subject['entity']['value'],
                'year': subject['year']['value']}
         ret.update(super(PopularPersonsBirthday, self).parse_result(ret))
