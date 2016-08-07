@@ -57,7 +57,7 @@ LOG_FILE = 'ifttt.log'
 CACHE_EXPIRATION = 5 * 60
 LONG_CACHE_EXPIRATION = 12 * 60 * 60
 DEFAULT_LANG = 'en'
-TEST_FIELDS = ['test', 'Coffee', 'ClueBot', 'All articles lacking sources', 'Q12345'] 
+TEST_FIELDS = ['test', 'Coffee', 'ClueBot', 'All articles to be expanded', 'Q12345'] 
 # test properties currently mixed  with trigger default values
 DEFAULT_RESP_LIMIT = 50  # IFTTT spec
 MAXRADIUS = 10000  # Wikipedia's max geosearch radius
@@ -474,7 +474,7 @@ class NewHashtag(BaseTriggerView):
 
 class NewCategoryMember(BaseTriggerView):
     """Trigger each time a new article appears in a category"""
-    default_fields = {'lang': DEFAULT_LANG, 'category': 'All articles lacking sources'}
+    default_fields = {'lang': DEFAULT_LANG, 'category': 'All articles to be expanded'}
     
     @add_images
     def get_data(self):
@@ -517,7 +517,7 @@ class NewCategoryMember(BaseTriggerView):
 class CategoryMemberRevisions(BaseTriggerView):
     """Trigger for revisions to articles within a specified category."""
 
-    default_fields = {'lang': DEFAULT_LANG, 'category': 'All articles lacking sources'}
+    default_fields = {'lang': DEFAULT_LANG, 'category': 'All articles to be expanded'}
     
     @add_images
     def get_data(self):
