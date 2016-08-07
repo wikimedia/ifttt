@@ -313,7 +313,7 @@ class BaseWikidataSparqlQueryTriggerView(BaseTriggerView):
         return resp
 
     def parse_result(self, result):
-        meta_id = url_to_uuid5(result['date'])
+        meta_id = url_to_uuid5(result['user'])
         created_at = result['date']
         ts = iso8601_to_epoch(result['date'])
         return {'created_at': created_at,
