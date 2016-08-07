@@ -3,9 +3,8 @@
   Wikipedia channel for IFTTT
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  Copyright 2015 Ori Livneh <ori@wikimedia.org>
+  Copyright 2016 Alangi Derick <alangiderick@gmail.com>,
                  Stephen LaPorte <stephen.laporte@gmail.com>
-                 Alangi Derick <alangiderick@gmail.com>
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
