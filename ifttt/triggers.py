@@ -734,7 +734,7 @@ class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
                         ?entityS rdfs:label ?entity
                     } 
                 FILTER (datatype(?date) = xsd:dateTime && month(?date) = month(now()) && day(?date) = day(now()))
-            } LIMIT 10"""
+            } ORDER BY DESC(?date) LIMIT 10"""
 
     query_params = {'query': query, 'format': 'json'}
 
