@@ -10,9 +10,6 @@
                 <comment>{{feeds.comment}}</comment>
                 <pubDate>{{feeds.created_at}}</pubDate>
                 <date>{{feeds.date}}</date>
-                <image>
-                    <url>{{feeds.media_url}}</url>
-                </image>
                 <description>Size: {{feeds.size}}</description>
                 <url>{{feeds.url}}</url>
                 <title>{{feeds.item}}</title>

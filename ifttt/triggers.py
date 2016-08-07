@@ -38,7 +38,6 @@ import feedparser
 import werkzeug.contrib.cache
 
 from urllib import urlencode
-from datetime import datetime
 
 from dal import (get_hashtags, 
                   get_all_hashtags, 
@@ -58,7 +57,7 @@ LOG_FILE = 'ifttt.log'
 CACHE_EXPIRATION = 5 * 60
 LONG_CACHE_EXPIRATION = 12 * 60 * 60
 DEFAULT_LANG = 'en'
-TEST_FIELDS = ['test', 'Coffee', 'ClueBot', 'All articles to be expanded', 'Q12345'] 
+TEST_FIELDS = ['test', 'Coffee', 'ClueBot', 'All articles lacking sources', 'Q12345'] 
 # test properties currently mixed  with trigger default values
 DEFAULT_RESP_LIMIT = 50  # IFTTT spec
 MAXRADIUS = 10000  # Wikipedia's max geosearch radius
@@ -314,7 +313,7 @@ class BaseWikidataSparqlQueryTriggerView(BaseTriggerView):
         return resp
 
     def parse_result(self, result):
-        meta_id = url_to_uuid5(result['url'])
+        meta_id = url_to_uuid5(result['date'])
         created_at = result['date']
         ts = iso8601_to_epoch(result['date'])
         return {'created_at': created_at,
@@ -479,7 +478,7 @@ class NewHashtag(BaseTriggerView):
 
 class NewCategoryMember(BaseTriggerView):
     """Trigger each time a new article appears in a category"""
-    default_fields = {'lang': DEFAULT_LANG, 'category': 'All articles to be expanded'}
+    default_fields = {'lang': DEFAULT_LANG, 'category': 'All articles lacking sources'}
     
     @add_images
     def get_data(self):
@@ -522,7 +521,7 @@ class NewCategoryMember(BaseTriggerView):
 class CategoryMemberRevisions(BaseTriggerView):
     """Trigger for revisions to articles within a specified category."""
 
-    default_fields = {'lang': DEFAULT_LANG, 'category': 'All articles to be expanded'}
+    default_fields = {'lang': DEFAULT_LANG, 'category': 'All articles lacking sources'}
     
     @add_images
     def get_data(self):
@@ -751,9 +750,8 @@ class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
         return map(self.parse_result, subject)
 
     def parse_result(self, subject):
+        print subject['date']['value']
         ret = {'date': subject['date']['value'],
-               'dob': subject['date']['value'],
-               'url': "https://query.wikidata.org/sparql?query=" + self.query_params['query'],
                'user': subject['entity']['value'],
                'year': subject['year']['value']}
         ret.update(super(PopularPersonsBirthday, self).parse_result(ret))
