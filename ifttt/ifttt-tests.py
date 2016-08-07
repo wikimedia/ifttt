@@ -35,7 +35,8 @@ from .triggers import (ArticleOfTheDay,
                        NewHashtag,
                        NewCategoryMember,
                        CategoryMemberRevisions,
-                       ItemRevisions)
+                       ItemRevisions,
+                       PopularPersonsBirthday)
 
 # A list of triggers to be tested
 ALL_TRIGGERS = [ArticleOfTheDay,
@@ -47,7 +48,8 @@ ALL_TRIGGERS = [ArticleOfTheDay,
                 NewHashtag,
                 UserRevisions,
                 NewCategoryMember,
-                CategoryMemberRevisions]
+                CategoryMemberRevisions,
+                PopularPersonsBirthday]
 
 app = core.app.test_client()
 app.application.debug = True

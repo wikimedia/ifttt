@@ -297,6 +297,29 @@ class BaseWikidataAPIQueryTriggerView(BaseTriggerView):
         return map(self.parse_result, resp)
 
 
+class BaseWikidataSparqlQueryTriggerView(BaseTriggerView):
+    """Generic view for IFTTT Triggers based on SPARQL Wikidata Queries from the WDQS."""
+
+    _base_url = 'https://query.wikidata.org/sparql'
+
+    def get_query(self):
+        formatted_url = self._base_url.format(self)
+        params = urlencode(self.query_params)
+        url = '%s?%s' % (formatted_url, params)
+        resp = cache.get(url)
+        if not resp:
+            resp = json.load(urllib2.urlopen(url))
+            cache.set(url, resp, timeout=CACHE_EXPIRATION)
+        return resp
+
+    def parse_result(self, result):
+        return
+
+    def get_data(self):
+        resp = self.get_query()
+        return map(self.parse_result, resp)
+
+
 class PictureOfTheDay(BaseFeaturedFeedTriggerView):
     """Trigger for Wikimedia Commons Picture of the Day"""
 
@@ -691,4 +714,38 @@ class ItemRevisions(BaseWikidataAPIQueryTriggerView):
                'comment': revision['comment'],
                'item': self.params['triggerFields']['itemid']}
         ret.update(super(ItemRevisions, self).parse_result(ret))
+        return ret
+
+class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
+    """Trigger for revisions to a specified Wikidata item."""
+
+    default_fields = {'lang': DEFAULT_LANG}
+    query = """SELECT ?entity (year(?date) as ?year) 
+                WHERE 
+                {   
+                    ?entityS wdt:P569 ?date .   
+                    SERVICE wikibase:label {
+                        bd:serviceParam wikibase:language "en" .
+                        ?entityS rdfs:label ?entity
+                    } 
+                FILTER (datatype(?date) = xsd:dateTime && month(?date) = month(now()) && day(?date) = day(now()))
+            } LIMIT 10"""
+
+    query_params = {'query': query, 'format': 'json'}
+
+    def get_query(self):
+        self.wiki = 'query.wikidata.org'
+        return super(PopularPersonsBirthday, self).get_query()
+
+    def get_data(self):
+        api_resp = self.get_query()
+        try:
+            subject = api_resp['results']['bindings']
+        except KeyError:
+            return []
+        return map(self.parse_result, subject)
+
+    def parse_result(self, subject):
+        ret = {'user': subject['entity']['value'],
+               'year': subject['year']['value']}
         return ret

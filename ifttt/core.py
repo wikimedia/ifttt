@@ -36,7 +36,8 @@ from .triggers import (ArticleOfTheDay,
                        NewHashtag,
                        NewCategoryMember,
                        CategoryMemberRevisions,
-                       ItemRevisions)
+                       ItemRevisions,
+                       PopularPersonsBirthday)
 
 import logging
 LOG_FILE = 'ifttt.log'
@@ -55,7 +56,8 @@ ALL_TRIGGERS = [ArticleOfTheDay,
                 NewHashtag,
                 NewCategoryMember,
                 CategoryMemberRevisions,
-                ItemRevisions]
+                ItemRevisions,
+                PopularPersonsBirthday]
 
 app = flask.Flask(__name__)
 bootstrap = Bootstrap(app)

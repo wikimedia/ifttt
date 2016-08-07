@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+    <channel>
+        <title>Popular persons birthday feeds</title>
+        <description>List of birthdays of very popular persons on Wikipedia</description>
+
+        <language>en-us</language>
+        {% for feeds in data %}
+            <item>
+                <user>Person: {{feeds.user}}</user>
+                <date>Year of birth: {{feeds.year}}</date>
+            </item>
+        {% endfor %}
+    </channel>
+</rss>
