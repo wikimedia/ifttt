@@ -55,7 +55,7 @@
 							<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&title=Coffee"><img src="{{url_for('static', filename='rss.png')}}" width="30px" height="30px"></a>
 
 						{% elif feed == "Item revisions" %}
-							<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&itemid=Q12345"><img src="{{url_for('static', filename='rss.png')}}" width="30px" height="30px"></a>
+							<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?itemid=Q12345"><img src="{{url_for('static', filename='rss.png')}}" width="30px" height="30px"></a>
 
 						{% elif feed == "New hashtag" %}
 							<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&hashtag=test"><img src="{{url_for('static', filename='rss.png')}}" width="30px" height="30px"></a>
