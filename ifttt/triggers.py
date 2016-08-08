@@ -192,7 +192,7 @@ class BaseTriggerView(flask.views.MethodView):
         trigger_values = self.params.get("triggerFields", {})
         for field, default_value in self.default_fields.items():
             self.fields[field] = trigger_values.get(field)
-            if not self.fields[field] or default_value not in TEST_FIELDS:
+            if self.fields[field] == '' and default_value not in TEST_FIELDS:
                 self.fields[field] = default_value
             if not self.fields[field]:
                 if field in self.optional_fields and self.fields[field] is not None:
@@ -725,21 +725,24 @@ class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
     """Trigger for revisions to a specified Wikidata item."""
 
     default_fields = {'lang': DEFAULT_LANG}
-    query = """SELECT ?entity ?date (year(?date) as ?year) 
+    query_params = {'query': '', 'format': 'json'}
+
+    def get_query(self):
+        self.wiki = 'query.wikidata.org'
+        self.default_fields['lang'] = self.fields['lang']
+
+        query = """SELECT ?entity ?date (year(?date) as ?year) 
                 WHERE 
                 {   
                     ?entityS wdt:P569 ?date .   
                     SERVICE wikibase:label {
-                        bd:serviceParam wikibase:language "en" .
+                        bd:serviceParam wikibase:language "%s" . 
                         ?entityS rdfs:label ?entity
                     } 
-                FILTER (datatype(?date) = xsd:dateTime && month(?date) = month(now()) && day(?date) = day(now()))
-            } ORDER BY DESC(?date) LIMIT 10"""
+                    FILTER (datatype(?date) = xsd:dateTime && month(?date) = month(now()) && day(?date) = day(now()))
+                } ORDER BY DESC(?date) LIMIT 10""" % self.default_fields['lang']
 
-    query_params = {'query': query, 'format': 'json'}
-
-    def get_query(self):
-        self.wiki = 'query.wikidata.org'
+        self.query_params = {'query': query, 'format': 'json'}
         return super(PopularPersonsBirthday, self).get_query()
 
     def get_data(self):
@@ -751,7 +754,6 @@ class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
         return map(self.parse_result, subject)
 
     def parse_result(self, subject):
-        print subject['date']['value']
         ret = {'date': subject['date']['value'],
                'user': subject['entity']['value'],
                'year': subject['year']['value']}
