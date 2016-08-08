@@ -5,11 +5,11 @@
         <description>List of birthdays of very popular persons on Wikipedia</description>
 
         <language>en-us</language>
-        {% for feeds in data %}
+        {% for feeds in data if not feeds.user.startswith('Q') and not feeds.user[-1].isdigit() %}
             <item>
-                <title>{{feeds.user}}</title>
-                <date>Year of birth: {{feeds.year}}</date>
-                <comment>{{feeds.user}} was born in the year {{feeds.year}} and just recently celebrated a birthday</comment>
+                <title>{{feeds.user|e}}</title>
+                <date>Year of birth: {{feeds.year|e}}</date>
+                <comment>{{feeds.user|e}} was born in the year {{feeds.year|e}} and just recently celebrated a birthday</comment>
             </item>
         {% endfor %}
     </channel>
