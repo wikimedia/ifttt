@@ -7,9 +7,9 @@
         <language>en-us</language>
         {% for feeds in data %}
             <item>
-                <user>Person: {{feeds.user}}</user>
+                <title>Person: {{feeds.user}}</title>
                 <date>Year of birth: {{feeds.year}}</date>
-                <comment>Date of birth: {{feeds.date}}</comment>
+                <comment>{{feeds.user}} was born in the year {{feeds.year}} and just recently celebrated his/her birthday</comment>
             </item>
         {% endfor %}
     </channel>
