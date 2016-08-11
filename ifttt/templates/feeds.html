@@ -66,6 +66,9 @@
 						{% elif feed == "Category member revisions" %}
 							<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&category=All articles lacking sources"><img src="{{url_for('static', filename='rss.png')}}" width="30px" height="30px"></a>
 
+						{% elif feed == "Popular persons birthday" %}
+							<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en&property=P106&item=Q82594"><img src="{{url_for('static', filename='rss.png')}}" width="30px" height="30px"></a>
+
 						{% else %}
 							<a href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed.replace(" ","_").lower()}}?lang=en"><img src="{{url_for('static', filename='rss.png')}}" width="30px" height="30px"></a>
 						{% endif %}

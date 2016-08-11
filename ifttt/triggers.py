@@ -733,18 +733,24 @@ class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
         self.default_fields['property'] = self.fields['property']
         self.default_fields['item'] = self.fields['item']
 
-        query = """SELECT ?entity ?date (year(?date) as ?year) 
-                WHERE 
-                {   
-                    ?entityS wdt:P569 ?date . 
-                    ?entityS wdt:%s wd:%s .   
-                    SERVICE wikibase:label {
-                        bd:serviceParam wikibase:language "%s" . 
-                        ?entityS rdfs:label ?entity
-                    } 
-                    FILTER (datatype(?date) = xsd:dateTime && month(?date) = month(now()) && day(?date) <= day(now()))
-                } ORDER BY DESC(?date) 
-                LIMIT 10""" % (self.default_fields['property'], self.default_fields['item'], self.default_fields['lang'])
+        query = """SELECT ?entity ?itemLabel ?propertyLabel ?date (year(?date) as ?year)
+                    WHERE 
+                    { 
+                        ?entityS wdt:P569 ?date . 
+                        ?entityS wdt:%s wd:%s .
+                        VALUES ?property { wd:%s } .
+                        VALUES ?item { wd:%s } . 
+                        SERVICE wikibase:label 
+                        { 
+                            bd:serviceParam wikibase:language "%s" . 
+                            ?entityS rdfs:label ?entity . 
+                            ?item rdfs:label ?itemLabel . 
+                            ?property rdfs:label ?propertyLabel 
+                        } FILTER (datatype(?date) = xsd:dateTime && month(?date) 
+                            = month(now()) && day(?date) <= day(now())) }
+                    ORDER BY DESC(?date) LIMIT 10""" % (self.default_fields['property'], 
+                        self.default_fields['item'], self.default_fields['property'], 
+                        self.default_fields['item'], self.default_fields['lang'])
 
         self.query_params = {'query': query, 'format': 'json'}
         return super(PopularPersonsBirthday, self).get_query()
@@ -760,6 +766,8 @@ class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
     def parse_result(self, subject):
         ret = {'date': subject['date']['value'],
                'user': subject['entity']['value'],
-               'year': subject['year']['value']}
+               'year': subject['year']['value'],
+               'item': subject['itemLabel']['value'],
+               'property': subject['propertyLabel']['value']}
         ret.update(super(PopularPersonsBirthday, self).parse_result(ret))
         return ret
