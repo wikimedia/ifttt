@@ -722,7 +722,7 @@ class ItemRevisions(BaseWikidataAPIQueryTriggerView):
         return ret
 
 class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
-    """Trigger for revisions to a specified Wikidata item."""
+    """Trigger for birthdays of people on Wikidata"""
 
     default_fields = {'lang': DEFAULT_LANG}
     query_params = {'query': '', 'format': 'json'}
