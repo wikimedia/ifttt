@@ -724,23 +724,27 @@ class ItemRevisions(BaseWikidataAPIQueryTriggerView):
 class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
     """Trigger for birthdays of people on Wikidata"""
 
-    default_fields = {'lang': DEFAULT_LANG}
+    default_fields = {'lang': DEFAULT_LANG, 'property': 'P106', 'item': 'Q82594'}
     query_params = {'query': '', 'format': 'json'}
 
     def get_query(self):
         self.wiki = 'query.wikidata.org'
         self.default_fields['lang'] = self.fields['lang']
+        self.default_fields['property'] = self.fields['property']
+        self.default_fields['item'] = self.fields['item']
 
         query = """SELECT ?entity ?date (year(?date) as ?year) 
                 WHERE 
                 {   
-                    ?entityS wdt:P569 ?date .   
+                    ?entityS wdt:P569 ?date . 
+                    ?entityS wdt:%s wd:%s .   
                     SERVICE wikibase:label {
                         bd:serviceParam wikibase:language "%s" . 
                         ?entityS rdfs:label ?entity
                     } 
-                    FILTER (datatype(?date) = xsd:dateTime && month(?date) = month(now()) && day(?date) = day(now()))
-                } ORDER BY DESC(?date) LIMIT 10""" % self.default_fields['lang']
+                    FILTER (datatype(?date) = xsd:dateTime && month(?date) = month(now()) && day(?date) <= day(now()))
+                } ORDER BY DESC(?date) 
+                LIMIT 10""" % (self.default_fields['property'], self.default_fields['item'], self.default_fields['lang'])
 
         self.query_params = {'query': query, 'format': 'json'}
         return super(PopularPersonsBirthday, self).get_query()
