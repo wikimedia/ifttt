@@ -8,8 +8,10 @@
         {% for feeds in data if not feeds.user.startswith('Q') and not feeds.user[-1].isdigit() %}
             <item>
                 <title>{{feeds.user|e}}</title>
-                <date>Year of birth: {{feeds.year|e}}</date>
-                <comment>{{feeds.user|e}} was born in the year {{feeds.year|e}} and just recently celebrated a birthday</comment>
+                <year>Year of birth: {{feeds.year|e}}</year>
+                <age>{{feeds.age|e}} years old</age>
+                <comment>{{feeds.user|e}} was born in the year {{feeds.year|e}} and is celebrating {{feeds.age|e}} year birthday anniversary</comment>
+                <date>{{feeds.date[0:10]|e}}</date>
                 <property>{{feeds.property|e}}</property>
                 <item>{{feeds.item|e}}</item>
             </item>

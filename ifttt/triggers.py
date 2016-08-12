@@ -27,6 +27,7 @@ import datetime
 import operator
 import urllib2
 import json
+import time
 import lxml.html
 import logging
 
@@ -314,9 +315,10 @@ class BaseWikidataSparqlQueryTriggerView(BaseTriggerView):
         return resp
 
     def parse_result(self, result):
+        timestamp = "{:%Y-%m-%dT%H:%M:%SZ}".format(datetime.datetime.now())
         meta_id = url_to_uuid5(result['user'])
         created_at = result['date']
-        ts = iso8601_to_epoch(result['date'])
+        ts = iso8601_to_epoch(timestamp)
         return {'created_at': created_at,
                 'meta': {'id': meta_id, 'timestamp': ts}}
 
@@ -748,7 +750,7 @@ class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
                             ?property rdfs:label ?propertyLabel 
                         } FILTER (datatype(?date) = xsd:dateTime && month(?date) 
                             = month(now()) && day(?date) <= day(now())) }
-                    ORDER BY DESC(?date) LIMIT 10""" % (self.default_fields['property'], 
+                    ORDER BY DESC(day(?date)) DESC(?year)""" % (self.default_fields['property'], 
                         self.default_fields['item'], self.default_fields['property'], 
                         self.default_fields['item'], self.default_fields['lang'])
 
@@ -764,9 +766,13 @@ class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
         return map(self.parse_result, subject)
 
     def parse_result(self, subject):
+        # Get the date of today
+        date = datetime.datetime.now()
+        age = int(date.year) - int(subject['year']['value'])
         ret = {'date': subject['date']['value'],
                'user': subject['entity']['value'],
                'year': subject['year']['value'],
+               'age': age,
                'item': subject['itemLabel']['value'],
                'property': subject['propertyLabel']['value']}
         ret.update(super(PopularPersonsBirthday, self).parse_result(ret))
