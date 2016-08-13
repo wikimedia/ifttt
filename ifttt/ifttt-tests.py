@@ -76,10 +76,9 @@ def check_response(test_trigger, test_params):
     results = json.loads(resp.data)
     assert len(results['data']) >= RESP_TEST_VALUE
 
-
+# Gets the trigger and its corresponding default fields and send them 
+# to check_response() to perform the POST request.
 def test_for_triggers():
-    """Gets the trigger and its corresponding default fields and send them 
-    to check_response() to perform the POST request"""
     for trigger in ALL_TRIGGERS:
         test_trigger = getattr(trigger, 'url_pattern', None)
         test_params = getattr(trigger, 'default_fields', None)
