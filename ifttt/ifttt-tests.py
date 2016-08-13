@@ -24,7 +24,10 @@ import core, json
 
 from .utils import snake_case
 
-# Import all triggers in the app
+# Import all triggers in the app before they are 
+# being tested. NOTE: The name of the triggers must 
+# be in CamelCase so that they can be converted to 
+# snake_case before running the tests.
 from .triggers import (ArticleOfTheDay,
                        PictureOfTheDay,
                        WordOfTheDay,
@@ -37,7 +40,10 @@ from .triggers import (ArticleOfTheDay,
                        ItemRevisions,
                        PopularPersonsBirthday)
 
-# A list of triggers to be tested
+# A list of triggers to be tested by the app. If any 
+# trigger is built and wants to be tested, just add 
+# the name of the trigger in CamelCase here and run 
+# the tests in order to get the results.
 ALL_TRIGGERS = [ArticleOfTheDay,
                 PictureOfTheDay,
                 WordOfTheDay,
@@ -50,7 +56,12 @@ ALL_TRIGGERS = [ArticleOfTheDay,
                 CategoryMemberRevisions,
                 PopularPersonsBirthday]
 
+# Creates a test instance of the applicatoin
 app = core.app.test_client()
+
+# Set debug mode to True for @app.before_request to run in 
+# core.py and validate CHANNEL_KEY in the test instance 
+# without returning 401
 app.application.debug = True
 
 def check_response(test_trigger, test_params):
@@ -66,8 +77,9 @@ def check_response(test_trigger, test_params):
     assert len(results['data']) >= RESP_TEST_VALUE
 
 
-# Routine to test the triggers one after the other
 def test_for_triggers():
+    """Gets the trigger and its corresponding default fields and send them 
+    to check_response() to perform the POST request"""
     for trigger in ALL_TRIGGERS:
         test_trigger = getattr(trigger, 'url_pattern', None)
         test_params = getattr(trigger, 'default_fields', None)

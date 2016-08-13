@@ -131,7 +131,7 @@ def test_setup():
 
 @app.route('/ifttt/v1/rss-feeds')
 def feeds():
-    """Returns a list of all feeds(triggers) for Wikipedia IFTTT."""
+    """Returns a list of all feeds (triggers) for in the app."""
     feeds = {'samples': {'feeds': {}}}
     for feed in ALL_TRIGGERS:
         feed_name = snake_case(feed.__name__)
@@ -139,6 +139,10 @@ def feeds():
         if feed.default_fields:
             feeds['samples']['feeds'][feed_display_name] = feed.default_fields
 
+    # Set skip_after_request through the g object to True 
+    # so that the Content-Type returned will be plain text 
+    # for the HTML in feeds.html to render correctly and not 
+    # in JSON format as the flask default Content-Type.
     g.skip_after_request = True
     return render_template('feeds.html', data=feeds)
 

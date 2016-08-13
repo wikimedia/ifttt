@@ -119,8 +119,7 @@ def add_images(get_data):
             if not data[i]['media_url']:
                 data[i]['media_url'] = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Wikipedia%27s_W.svg/500px-Wikipedia%27s_W.svg.png'
         return data
-    return with_images
-        
+    return with_images        
 
 def get_page_image(page_titles, lang=DEFAULT_LANG, timeout=LONG_CACHE_EXPIRATION):
     page_images = {}
@@ -209,6 +208,7 @@ class BaseTriggerView(flask.views.MethodView):
         response.headers["Content-Type"] = "application/xml"
         return response
 
+
 class BaseFeaturedFeedTriggerView(BaseTriggerView):
     """Generic view for IFTTT Triggers based on FeaturedFeeds."""
 
@@ -273,7 +273,7 @@ class BaseAPIQueryTriggerView(BaseTriggerView):
 
 
 class BaseWikidataAPIQueryTriggerView(BaseTriggerView):
-    """Generic view for IFTTT Triggers based on API Wikidata Queries."""
+    """Generic view for IFTTT Triggers based on Wikidata API calls."""
 
     _base_url = 'https://www.wikidata.org/w/api.php'
 
@@ -300,7 +300,9 @@ class BaseWikidataAPIQueryTriggerView(BaseTriggerView):
 
 
 class BaseWikidataSparqlQueryTriggerView(BaseTriggerView):
-    """Generic view for IFTTT Triggers based on SPARQL Wikidata Queries from the WDQS."""
+    """Generic view for IFTTT Triggers based on Wikidata SPARQL Queries. 
+    These queries are executed on the WDQS SPARQL Endpoint through a GET 
+    request and results are returned in a format specified (JSON)"""
 
     _base_url = 'https://query.wikidata.org/sparql'
 
@@ -315,6 +317,7 @@ class BaseWikidataSparqlQueryTriggerView(BaseTriggerView):
         return resp
 
     def parse_result(self, result):
+        # Get the timestamp of when the query is runned in the specified format
         timestamp = "{:%Y-%m-%dT%H:%M:%SZ}".format(datetime.datetime.now())
         meta_id = url_to_uuid5(result['user'])
         created_at = result['date']
@@ -687,6 +690,7 @@ class UserRevisions(BaseAPIQueryTriggerView):
         ret.update(super(UserRevisions, self).parse_result(ret))
         return ret
 
+
 class ItemRevisions(BaseWikidataAPIQueryTriggerView):
     """Trigger for revisions to a specified Wikidata item."""
 
@@ -723,8 +727,9 @@ class ItemRevisions(BaseWikidataAPIQueryTriggerView):
         ret.update(super(ItemRevisions, self).parse_result(ret))
         return ret
 
+
 class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
-    """Trigger for birthdays of people on Wikidata"""
+    """Trigger for popular persons birthday on Wikidata"""
 
     default_fields = {'lang': DEFAULT_LANG, 'property': 'P106', 'item': 'Q82594'}
     query_params = {'query': '', 'format': 'json'}
@@ -735,6 +740,7 @@ class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
         self.default_fields['property'] = self.fields['property']
         self.default_fields['item'] = self.fields['item']
 
+        # SPARQL query to get birthdays of people from Wikidata based on trigger fields.
         query = """SELECT ?entity ?itemLabel ?propertyLabel ?date (year(?date) as ?year)
                     WHERE 
                     { 
@@ -766,9 +772,11 @@ class PopularPersonsBirthday(BaseWikidataSparqlQueryTriggerView):
         return map(self.parse_result, subject)
 
     def parse_result(self, subject):
-        # Get the date of today
+        # Get the datetime of today and extract the year to compute
+        # the age of the person with birthday.
         date = datetime.datetime.now()
         age = int(date.year) - int(subject['year']['value'])
+
         ret = {'date': subject['date']['value'],
                'user': subject['entity']['value'],
                'year': subject['year']['value'],
