@@ -1,50 +1,67 @@
 {% extends "material/base.html" %}
 
-{% block title %}Wikipedia RSS feeds - Page Not Found{% endblock %}
+{% block title %} Page not found - 404 {% endblock %}
 
-{% block navbar %}
-	<style type="text/css">
-		h4 {
-			color:#3333ff;
-		}
-		.navbar {
-			background-color:#e4e4e4;
-		}
-		.navbar-brand {
-			position: relative;
-			top: -10px;
-		}
-		.navbar-toggle  {
-		    height: 50px;
-		}
-	</style>
-	<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-		<div class="container">
-			<div class="navbar-header">
-				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-					<span class="sr-only">Toggle navigation</span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-				</button>
-				<a class="navbar-brand" href="{{ url_for('feeds', _external=True) }}"><strong><h4><img src="{{url_for('static', filename='wmftlabs.png')}}" width="40px" height="40px">&nbsp;&nbsp;Wikipedia RSS feeds for IFTTT</h4></strong></a>
-			</div>
-			<div class="navbar-collapse collapse">
-				<ul class="nav navbar-nav pull-right">
-					<li><a href="{{ url_for('feeds', _external=True) }}"><h4>Home &nbsp;<span class="glyphicon glyphicon-home"></span></h4></a></li>
-					<li><a href="#"><h4>About &nbsp;<span class="glyphicon glyphicon-user"></span></h4></a></li>
-					<li><a href="#"><h4>Developers &nbsp;<span class="glyphicon glyphicon-blackboard"></span></h4></a></li>
-				</ul>
-			</div>
-		</div>
-	</div>
+{% block head %}
+    {{ super() }}
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://materialdesignblog.com/Material-Design-Flipper/material/css/ripples.min.css" rel="stylesheet">
+    <link href="http://materialdesignblog.com/Material-Design-Flipper/material/css/material-wfont.min.css" rel="stylesheet">
+
+    <link href="http://materialdesignblog.com/Material-Design-Flipper/css/flipper.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <style type="text/css">
+        #hover-card {
+            text-decoration: none;
+        }
+        #footer {
+            position: fixed;
+            height:50px;
+            bottom:0px;
+            left:0px;
+            right:0px;
+            margin-bottom:0px;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
-	<div class="container">
-		<br /><br /><br /><br />
-		<div class="page-header">
-			<h1>404 - Sorry, this page was Not Found</h1>
-		</div>
-	</div>
+<div class="navbar navbar-default">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="{{url_for('index')}}">Wikipedia RSS Feeds&nbsp;&nbsp;&nbsp;<span class="icon-material-keyboard-arrow-right"></span>&nbsp;&nbsp;&nbsp;Total of {{count}} Wikipedia RSS feed(s)</a>
+    </div>
+</div>
+<div class="container">
+    <div id="example-row" class="row">
+            <div class="col-xs-12 col-md-12 full-card">
+                <div class="flip-card active-card">
+                    <div class="card label-info" style="background-color: #7ec0ee !important;color: white; height: 470px;">
+                        <h1 align="center"><br />Page not found</h1>
+                        <h6 align="center">404</h6>
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+
+<!--    JAVASCRIPT DEPENENCIES      -->
+
+<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+<script src="http://materialdesignblog.com/Material-Design-Flipper/material/js/ripples.min.js"></script>
+<script src="http://materialdesignblog.com/Material-Design-Flipper/material/js/material.min.js"></script>
+
+{% endblock %}
+
+{% block footer %}
+<div class="navbar navbar-default" id="footer">
+    <div class="navbar-header"></div>
+</div>
 {% endblock %}

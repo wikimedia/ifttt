@@ -20,7 +20,13 @@
             height: 60px;
             top: -8px;
         }
-
+        #footer {
+            height:50px;
+            bottom:0px;
+            left:0px;
+            right:0px;
+            margin-bottom:0px;
+        }
     </style>
 {% endblock %}
 
@@ -32,7 +38,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="javascript:void(0)">Wikipedia RSS Feeds&nbsp;&nbsp;&nbsp;<span class="icon-material-keyboard-arrow-right"></span>&nbsp;&nbsp;&nbsp;Total of {{count}} Wikipedia RSS feed(s)</a>
+        <a class="navbar-brand" href="{{url_for('index')}}">Wikipedia RSS Feeds&nbsp;&nbsp;&nbsp;<span class="icon-material-keyboard-arrow-right"></span>&nbsp;&nbsp;&nbsp;Total of {{count}} Wikipedia RSS feed(s)</a>
     </div>
 </div>
 <div class="container">
@@ -72,7 +78,7 @@
 {% endblock %}
 
 {% block footer %}
-<div class="navbar navbar-default">
+<div class="navbar navbar-default" id="footer">
     <div class="navbar-header"></div>
 </div>
 {% endblock %}
