@@ -23,9 +23,10 @@
 """
 
 import flask
+from urllib import urlencode
 from flask import request, render_template, g
 from flask import redirect, url_for
-from flask_bootstrap import Bootstrap
+from flask_material import Material 
 
 from .utils import snake_case
 from .triggers import (ArticleOfTheDay,
@@ -61,11 +62,14 @@ ALL_TRIGGERS = [ArticleOfTheDay,
                 PopularPersonsBirthday]
 
 app = flask.Flask(__name__)
-bootstrap = Bootstrap(app)
+material = Material(app)
 # Load default config first
 app.config.from_pyfile('../default.cfg', silent=True)
 # Override defaults if ifttt.cfg is present
 app.config.from_pyfile('../ifttt.cfg', silent=True)
+
+# Creating a custom filter
+app.jinja_env.filters['urlencode'] = lambda params: urlencode(params)
 
 
 @app.errorhandler(400)
@@ -129,10 +133,12 @@ def test_setup():
     return flask.jsonify(data=ret)
 
 
-@app.route('/ifttt/v1/rss-feeds')
-def feeds():
-    """Returns a list of all feeds (triggers) for in the app."""
+@app.route('/ifttt/v1/feeds')
+def index():
+    """Return the list of feeds in material design card template"""
     feeds = {'samples': {'feeds': {}}}
+    # Sum the ALL_TRIGGERS list
+    list_count = len(ALL_TRIGGERS)
     for feed in ALL_TRIGGERS:
         feed_name = snake_case(feed.__name__)
         feed_display_name = feed_name.replace("_", " ").capitalize()
@@ -144,7 +150,7 @@ def feeds():
     # for the HTML in feeds.html to render correctly and not 
     # in JSON format as the flask default Content-Type.
     g.skip_after_request = True
-    return render_template('feeds.html', data=feeds)
+    return render_template('index.html', data=feeds, count=list_count)
 
 
 @app.route('/ifttt/v1/status')

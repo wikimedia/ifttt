@@ -1,0 +1,74 @@
+{% extends "material/base.html" %}
+{% import "material/utils.html" as util %}
+{% import "material/wtf.html" as wtf %}
+
+{% block title %} Wikipedia RSS Feeds {% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://materialdesignblog.com/Material-Design-Flipper/material/css/ripples.min.css" rel="stylesheet">
+    <link href="http://materialdesignblog.com/Material-Design-Flipper/material/css/material-wfont.min.css" rel="stylesheet">
+
+    <link href="http://materialdesignblog.com/Material-Design-Flipper/css/flipper.css" rel="stylesheet">
+    <style type="text/css">
+        #hover-card {
+            text-decoration: none;
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="navbar navbar-default">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="javascript:void(0)">Wikipedia RSS Feeds&nbsp;&nbsp;&nbsp;<span class="icon-material-keyboard-arrow-right"></span>&nbsp;&nbsp;&nbsp;Total of {{count}} Wikipedia RSS feed(s)</a>
+    </div>
+</div>
+<div class="container">
+    <div id="example-row" class="row">
+        {% for feed in data.samples.feeds.items() %}
+            <div class="col-xs-12 col-md-4 full-card">
+                <div class="flip-card active-card">
+                    <a id="hover-card" href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed[0].replace(" ","_").lower()}}?={{feed[1]|urlencode}}" data-toggle="tooltip" title="Click me to view my RSS">
+                        <div class="card label-info" style="background-color: #7ec0ee !important;color: white;">
+                            <h1 align="center"><br /><br /><br />{{ feed[0] }}</h1>
+                        </div>
+                    </a>
+                    <div class="well">
+                        {% for k, v in feed[1].items() %}
+                        <span style="font-size: 15px;">{{k}} : {{v}} ~ </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}            
+    </div>
+</div>
+
+<!--    JAVASCRIPT DEPENENCIES      -->
+
+<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+<script src="http://materialdesignblog.com/Material-Design-Flipper/material/js/ripples.min.js"></script>
+<script src="http://materialdesignblog.com/Material-Design-Flipper/material/js/material.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $('[data-toggle="tooltip"]').css('opacity':'1').tooltip();
+    });
+</script>
+
+{% endblock %}
+
+{% block footer %}
+<div class="navbar navbar-default" style="line-height: 0px;">
+    <div class="navbar-header"></div>
+</div>
+{% endblock %}
