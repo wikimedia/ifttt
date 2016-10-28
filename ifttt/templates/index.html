@@ -45,7 +45,7 @@
                     <div class="card label-info" style="background-color: #7ec0ee !important;color: white;">
                         <h1 align="center"><br /><br /><br />{{ feed[0] }}</h1>
                     </div>
-                    <a id="hover-card" href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed[0].replace(" ","_").lower()}}?={{feed[1]|urlencode}}" data-toggle="tooltip" title="Click me to view my RSS" class="btn btn-primary btn-fab btn-raised fa fa-rss fa-2x" id="second"></a>
+                    <a id="hover-card" href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed[0].replace(" ","_").lower()}}?{{feed[1]|urlencode}}" data-toggle="tooltip" title="Click me to view my RSS" class="btn btn-primary btn-fab btn-raised fa fa-rss fa-2x" id="second"></a>
                     <div class="well">
                         {% for k, v in feed[1].items() %}
                         <span style="font-size: 13px;">{{k}} : {{v}} ~ </span>
