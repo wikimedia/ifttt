@@ -1,6 +1,4 @@
 {% extends "material/base.html" %}
-{% import "material/utils.html" as util %}
-{% import "material/wtf.html" as wtf %}
 
 {% block title %} Wikipedia RSS Feeds {% endblock %}
 
@@ -11,11 +9,24 @@
     <link href="http://materialdesignblog.com/Material-Design-Flipper/material/css/material-wfont.min.css" rel="stylesheet">
 
     <link href="http://materialdesignblog.com/Material-Design-Flipper/css/flipper.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
     <style type="text/css">
         #hover-card {
             text-decoration: none;
         }
-
+        .well {
+            position: relative;
+            z-index: -1;
+            height: 60px;
+            top: -8px;
+        }
+        #footer {
+            height:50px;
+            bottom:0px;
+            left:0px;
+            right:0px;
+            margin-bottom:0px;
+        }
     </style>
 {% endblock %}
 
@@ -27,7 +38,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="javascript:void(0)">Wikipedia RSS Feeds&nbsp;&nbsp;&nbsp;<span class="icon-material-keyboard-arrow-right"></span>&nbsp;&nbsp;&nbsp;Total of {{count}} Wikipedia RSS feed(s)</a>
+        <a class="navbar-brand" href="{{url_for('index')}}">Wikipedia RSS Feeds&nbsp;&nbsp;&nbsp;<span class="icon-material-keyboard-arrow-right"></span>&nbsp;&nbsp;&nbsp;Total of {{count}} Wikipedia RSS feed(s)</a>
     </div>
 </div>
 <div class="container">
@@ -35,14 +46,13 @@
         {% for feed in data.samples.feeds.items() %}
             <div class="col-xs-12 col-md-4 full-card">
                 <div class="flip-card active-card">
-                    <a id="hover-card" href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed[0].replace(" ","_").lower()}}?={{feed[1]|urlencode}}" data-toggle="tooltip" title="Click me to view my RSS">
-                        <div class="card label-info" style="background-color: #7ec0ee !important;color: white;">
-                            <h1 align="center"><br /><br /><br />{{ feed[0] }}</h1>
-                        </div>
-                    </a>
+                    <div class="card label-info" style="background-color: #7ec0ee !important;color: white;">
+                        <h1 align="center"><br /><br /><br />{{ feed[0] }}</h1>
+                    </div>
+                    <a id="hover-card" href="http://tools.wmflabs.org/ifttt-testing/ifttt/v1/triggers/{{feed[0].replace(" ","_").lower()}}?{{feed[1]|urlencode}}" data-toggle="tooltip" title="Click me to view my RSS" class="btn btn-primary btn-fab btn-raised fa fa-rss fa-2x" id="second"></a>
                     <div class="well">
                         {% for k, v in feed[1].items() %}
-                        <span style="font-size: 15px;">{{k}} : {{v}} ~ </span>
+                        <span style="font-size: 13px;">{{k}} : {{v}} ~ </span>
                         {% endfor %}
                     </div>
                 </div>
@@ -68,7 +78,7 @@
 {% endblock %}
 
 {% block footer %}
-<div class="navbar navbar-default" style="line-height: 0px;">
+<div class="navbar navbar-default" id="footer">
     <div class="navbar-header"></div>
 </div>
 {% endblock %}
