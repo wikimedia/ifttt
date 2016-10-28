@@ -133,7 +133,7 @@ def test_setup():
     return flask.jsonify(data=ret)
 
 
-@app.route('/ifttt/v1/feeds')
+@app.route('/ifttt/v1/rss-feeds')
 def index():
     """Return the list of feeds in material design card template"""
     feeds = {'samples': {'feeds': {}}}
