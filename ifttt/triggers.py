@@ -276,6 +276,7 @@ class PictureOfTheDay(BaseFeaturedFeedTriggerView):
 
     def parse_entry(self, entry):
         """Scrape each PotD entry for its description and URL."""
+        logging.info('%s: %s -- fetched data' % (self.__class__.__name__, trigger_identity))
         item = super(PictureOfTheDay, self).parse_entry(entry)
         summary = lxml.html.fromstring(entry.summary)
         image_node = select(summary, 'a.image img')
