@@ -64,7 +64,7 @@ MAXRADIUS = 10000  # Wikipedia's max geosearch radius
 
 _cur_dir = os.path.dirname(__file__)
 _cache_dir = os.path.join(_cur_dir, '../cache')
-cache = werkzeug.contrib.cache.FileSystemCache(_cache_dir)
+cache = werkzeug.contrib.cache.SimpleCache()
 
 logging.basicConfig(filename=LOG_FILE,
                     format='%(asctime)s - %(message)s',
@@ -160,7 +160,7 @@ class BaseTriggerView(flask.views.MethodView):
         trigger_values = self.params.get('triggerFields', {})
         for field, default_value in self.default_fields.items():
             self.fields[field] = trigger_values.get(field)
-            if not self.fields[field] and default_value not in TEST_FIELDS:
+            if self.fields[field] == '' and default_value not in TEST_FIELDS:
                 # TODO: Clean up
                 self.fields[field] = default_value
             if not self.fields[field]:
@@ -276,7 +276,6 @@ class PictureOfTheDay(BaseFeaturedFeedTriggerView):
 
     def parse_entry(self, entry):
         """Scrape each PotD entry for its description and URL."""
-        logging.info('%s: %s -- fetched data' % (self.__class__.__name__, trigger_identity))
         item = super(PictureOfTheDay, self).parse_entry(entry)
         summary = lxml.html.fromstring(entry.summary)
         image_node = select(summary, 'a.image img')
