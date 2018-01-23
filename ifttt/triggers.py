@@ -205,7 +205,6 @@ class BaseFeaturedFeedTriggerView(BaseTriggerView):
                           reverse=True)
         return map(self.parse_entry, feed.entries)
 
-
 class BaseAPIQueryTriggerView(BaseTriggerView):
     """Generic view for IFTT Triggers based on API MediaWiki Queries."""
 
@@ -303,6 +302,48 @@ class WordOfTheDay(BaseFeaturedFeedTriggerView):
         item['definition'] = div.text_content().strip()
         return item
 
+class TrendingTopics(BaseTriggerView):
+    """Trigger for Wikipedia trending"""
+
+    url = 'https://wikipedia-trending.wmflabs.org'
+    default_fields = {}
+
+    def query(self, path):
+        url = '%s%s' % (self.url, path)
+        resp = cache.get(url)
+        if not resp:
+            resp = json.load(urllib2.urlopen(url))
+            cache.set(url, resp, timeout=60)
+        return resp
+
+    def get_data(self):
+        resp = self.query('/api/trending/enwiki/24')
+        return filter(self.only_trending, map(self.parse_result, resp['pages']))
+
+    def only_trending(self, page):
+        return page['edits'] > 10 and page['editors'] > 4 and page['score'] > 0
+
+    def parse_result(self, page):
+        url = "https://en.wikipedia.org/wiki/%s"%page['title'].replace(' ', '_')
+        updated = page['updated'][0:19] + 'Z'
+        try:
+            thumbUrl = page['thumbnail']['source']
+        except KeyError:
+            thumbUrl = 'https://upload.wikimedia.org/wikipedia/commons/6/63/Wikipedia-logo.png'
+        return {
+            'thumbURL': thumbUrl,
+            'bias': page['bias'],
+            'tags': page['tags'],
+            'title': page['title'],
+            'url': url,
+            'score': page['trendiness'],
+            'date': updated,
+            'since': page['start'][0:19] + 'Z',
+            'edits': page['edits'],
+            'editors': len(page['contributors']),
+            'meta': {'id': url_to_uuid5(url),
+                 'timestamp': iso8601_to_epoch(updated)},
+        }
 
 class NewArticle(BaseAPIQueryTriggerView):
     """Trigger for each new article."""
