@@ -1,6 +1,6 @@
 # Setup instructions
 
-* Install (https://virtualenv.pypa.io)[virtualenv] globally
+* Install [virtualenv](https://virtualenv.pypa.io) globally
 * Create a virtual environment in the directory up from this one
 e.g.
 ```
@@ -10,7 +10,7 @@ virtualenv venv
 Inside this repo run:
 ```
 ./setup
-`
+```
 
 You'll need to setup a channel key inside ifttt.cfg
 
@@ -34,13 +34,13 @@ curl -d "" -X POST http://localhost:5000/v1/triggers/picture_of_the_day
 
 # Triggers
 
-Triggers are defined in ifttt/triggers.py
-Triggers are exposed at http://localhost:5000/v1/triggers/<trigger name>
-	where trigger name is either explicitly added via url_pattern or generated from the class name in snake case. e.g. PictureOfTheDay becomes picture_of_the_day
+Triggers are defined in `ifttt/triggers.py`.
+Triggers are exposed at `http://localhost:5000/v1/triggers/<trigger name>`
+	where trigger name is either explicitly added via url_pattern or generated from the class name in snake case. e.g. `PictureOfTheDay` becomes `picture_of_the_day`
 
-A trigger is either JSON based (BaseTriggerView) or feed based (BaseFeaturedFeedTriggerView)
+A trigger is either JSON based (`BaseTriggerView`) or feed based (`BaseFeaturedFeedTriggerView`).
 
-Create a trigger in ifttt/triggers.py and expose it in ifttt/core.py
+Create a trigger in `ifttt/triggers.py` and expose it in `ifttt/core.py`.
 
 ## Trigger fields
 
@@ -52,5 +52,5 @@ curl -H "Content-Type: application/json"  -d '{"triggerFields":{"hrs":"2"}}' -X 
 
 ## Channel config
 
-Note the channel_config.yaml file needs to be manually loaded into IFTTT. It lives in this repo purely for tracking purposes.
+Note the `channel_config.yaml` file needs to be manually loaded into IFTTT. It lives in this repo purely for tracking purposes.
 
