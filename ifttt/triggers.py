@@ -306,7 +306,9 @@ class TrendingTopics(BaseTriggerView):
     """Trigger for Wikipedia trending"""
 
     url = 'https://wikipedia-trending.wmflabs.org'
-    default_fields = {}
+    default_fields = {'hrs': '24', 'edits': 10, 'editors': 4, 'score': 0.00001,
+        'title_contains': False }
+    optional_fields = [ 'hrs', 'edits', 'editors', 'score', 'title_contains' ]
 
     def query(self, path):
         url = '%s%s' % (self.url, path)
@@ -317,11 +319,23 @@ class TrendingTopics(BaseTriggerView):
         return resp
 
     def get_data(self):
-        resp = self.query('/api/trending/enwiki/24')
+        resp = self.query('/api/trending/enwiki/%s'%self.fields['hrs'])
         return filter(self.only_trending, map(self.parse_result, resp['pages']))
 
     def only_trending(self, page):
-        return page['edits'] > 10 and page['editors'] > 4 and page['score'] > 0
+        min_edits = self.fields['edits']
+        min_editors = self.fields['editors']
+        min_score = self.fields['score']
+        title_contains = self.fields['title_contains']
+        title_match = True
+        if title_contains:
+            if title_contains.lower() in page['title'].lower():
+                title_match = True
+            else:
+                title_match = False
+
+        return page['edits'] >= min_edits and page['editors'] >= min_editors and \
+            page['score'] >= min_score and title_match
 
     def parse_result(self, page):
         url = "https://en.wikipedia.org/wiki/%s?referrer=ifttt-trending"%page['title'].replace(' ', '_')
