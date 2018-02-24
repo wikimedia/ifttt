@@ -32,6 +32,7 @@ from .triggers import (ArticleOfTheDay,
                        NewArticle,
                        NewHashtag,
                        NewCategoryMember,
+                       TrendingTopics,
                        CategoryMemberRevisions)
 
 import logging
@@ -50,6 +51,7 @@ ALL_TRIGGERS = [ArticleOfTheDay,
                 NewArticle,
                 NewHashtag,
                 NewCategoryMember,
+                TrendingTopics,
                 CategoryMemberRevisions]
 
 app = flask.Flask(__name__)
