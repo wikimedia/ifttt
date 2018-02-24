@@ -101,6 +101,7 @@ NAMESPACE_MAP = {
     -2: 'Media'
 }
 
+DEFAULT_IMAGE = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Wikipedia%27s_W.svg/500px-Wikipedia%27s_W.svg.png'
 
 def add_images(get_data):
     def with_images(*args, **kwargs):
@@ -111,7 +112,7 @@ def add_images(get_data):
             title = res['title']
             data[i]['media_url'] = images.get(title)
             if not data[i]['media_url']:
-                data[i]['media_url'] = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Wikipedia%27s_W.svg/500px-Wikipedia%27s_W.svg.png'
+                data[i]['media_url'] = DEFAULT_IMAGE
         return data
     return with_images
         
@@ -343,7 +344,7 @@ class TrendingTopics(BaseTriggerView):
         try:
             thumbUrl = page['thumbnail']['source']
         except KeyError:
-            thumbUrl = 'https://upload.wikimedia.org/wikipedia/commons/6/63/Wikipedia-logo.png'
+            thumbUrl = DEFAULT_IMAGE
         return {
             'thumbURL': thumbUrl,
             'bias': page['bias'],
