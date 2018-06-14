@@ -1,3 +1,5 @@
+
+
 # -*- coding: utf-8 -*-
 """
   Wikipedia channel for IFTTT
@@ -105,6 +107,7 @@ NAMESPACE_MAP = {
     -2: 'Media'
 }
 
+DEFAULT_IMAGE = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Wikipedia%27s_W.svg/500px-Wikipedia%27s_W.svg.png'
 
 def add_images(get_data):
     def with_images(*args, **kwargs):
@@ -115,7 +118,7 @@ def add_images(get_data):
             title = res['title']
             data[i]['media_url'] = images.get(title)
             if not data[i]['media_url']:
-                data[i]['media_url'] = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Wikipedia%27s_W.svg/500px-Wikipedia%27s_W.svg.png'
+                data[i]['media_url'] = DEFAULT_IMAGE
         return data
     return with_images
         
@@ -158,16 +161,15 @@ class BaseTriggerView(flask.views.MethodView):
         self.limit = self.params.get('limit', DEFAULT_RESP_LIMIT)
         trigger_identity = self.params.get('trigger_identity')
         trigger_values = self.params.get('triggerFields', {})
+        for field, value in trigger_values.items():
+            self.fields[field] = value
         for field, default_value in self.default_fields.items():
-            self.fields[field] = trigger_values.get(field)
-            if self.fields[field] == '' and default_value not in TEST_FIELDS:
-                # TODO: Clean up
-                self.fields[field] = default_value
-            if not self.fields[field]:
-                if field in self.optional_fields and self.fields[field] is not None:
-                    self.fields[field] = ''
-                else:
-                    flask.abort(400)
+            if field not in self.fields and field in self.optional_fields:
+                if field not in TEST_FIELDS:
+                    self.fields[field] = default_value
+            elif field not in self.fields:
+                flask.abort(400)
+
         logging.info('%s: %s' % (self.__class__.__name__, trigger_identity))
         data = self.get_data()
         data = data[:self.limit]
@@ -239,7 +241,6 @@ class BaseFeaturedFeedTriggerView(BaseTriggerView):
         feed.entries.sort(key=operator.attrgetter('published_parsed'),
                           reverse=True)
         return map(self.parse_entry, feed.entries)
-
 
 class BaseAPIQueryTriggerView(BaseTriggerView):
     """Generic view for IFTT Triggers based on API MediaWiki Queries."""
@@ -353,6 +354,62 @@ class WordOfTheDay(BaseFeaturedFeedTriggerView):
         item['definition'] = div.text_content().strip()
         return item
 
+class TrendingTopics(BaseTriggerView):
+    """Trigger for Wikipedia trending"""
+
+    url = 'https://wikipedia-trending.wmflabs.org'
+    default_fields = {'hrs': '24', 'edits': 20, 'editors': 6, 'score': 0.00001,
+        'title_contains': False }
+    optional_fields = [ 'hrs', 'edits', 'editors', 'score', 'title_contains' ]
+
+    def query(self, path):
+        url = '%s%s' % (self.url, path)
+        resp = cache.get(url)
+        if not resp:
+            resp = json.load(urllib2.urlopen(url))
+            cache.set(url, resp, timeout=60)
+        return resp
+
+    def get_data(self):
+        resp = self.query('/api/trending/enwiki/%s'%self.fields['hrs'])
+        return filter(self.only_trending, map(self.parse_result, resp['pages']))
+
+    def only_trending(self, page):
+        min_edits = self.fields['edits']
+        min_editors = self.fields['editors']
+        min_score = self.fields['score']
+        title_contains = self.fields['title_contains']
+        title_match = True
+        if title_contains:
+            if title_contains.lower() in page['title'].lower():
+                title_match = True
+            else:
+                title_match = False
+
+        return page['edits'] >= min_edits and page['editors'] >= min_editors and \
+            page['score'] >= min_score and title_match
+
+    def parse_result(self, page):
+        url = "https://en.wikipedia.org/wiki/%s?referrer=ifttt-trending"%page['title'].replace(' ', '_')
+        updated = page['updated'][0:19] + 'Z'
+        try:
+            thumbUrl = page['thumbnail']['source']
+        except KeyError:
+            thumbUrl = DEFAULT_IMAGE
+        return {
+            'thumbURL': thumbUrl,
+            'bias': page['bias'],
+            'tags': page['tags'],
+            'title': page['title'],
+            'url': url,
+            'score': page['trendiness'],
+            'date': updated,
+            'since': page['start'][0:19] + 'Z',
+            'edits': page['edits'],
+            'editors': len(page['contributors']),
+            'meta': {'id': url_to_uuid5(url),
+                 'timestamp': iso8601_to_epoch(updated)},
+        }
 
 class NewArticle(BaseAPIQueryTriggerView):
     """Trigger for each new article."""

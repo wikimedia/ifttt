@@ -2,6 +2,53 @@
 # 
 # Channel config details
 # 
+- Name: Most edited articles
+  Description: This trigger fires for any articles that are receiving an unusual level of edits
+  Verbiage: Wikipedia article has unusual amount of edits
+  Endpoint: trending_topics
+  Trigger Ingredients:
+      - Name: Title
+        Slug: title
+        Description: The title of the page that has been edited frequently
+        Type: String
+        Example: Banana
+      - Name: URL
+        Slug: url
+        Description: The URL to the Wikipedia article
+        Type: Web URL
+        Example: "http://wikipedia.org/wiki/Banana"
+      - Name: NumEdits
+        Slug: edits
+        Description: How many edits the article received within the time frame
+        Type: String
+        Example: 32
+      - Name: NumContributors
+        Slug: editors
+        Description: How many unique editors contributed to the article
+        Type: String
+      - Name: Thumb
+        Slug: thumbUrl
+        Description: The page image associated with the article
+        Type: Image URL
+      - Name: TrendStart
+        Slug: since
+        Description: When the edit trend started
+        Type: Date
+  Trigger Examples:
+        - Action: Create a text post
+          Title: "{{Title}} is trending on Wikipedia"
+          Body: "<a href='{{URL}}''>{{Title}} </a>, has received {{NumEdits}} edits by {{NumContributors}} contributors since {{TrendStart}}
+        - Action: send notification
+          Notification: "{{Title}} is trending on Wikipedia! {{URL}}"
+        - Action: Create a text file
+          Filename: "{{Title}}<br>{{NumEdits}} edits by {{NumContributors}} contributors  since {{TrendStart}}<br>{{URL}}"
+        - Action: Add row to spreadsheet
+          Spreadsheet name: "Most edited articles on Wikipedia"
+          Formatted row: "{{Title}}|||{{URL}}|||{{NumEdits}}|||{{NumContributors}}|||{{TrendStart}}"
+        - Action: Call my phone
+          Message to say: "Hello there, {{Title}} is trending on Wikipediaw with {{NumEdits}} edits by {{NumContributors}} contributors."
+        - Action: Quick add event
+          Quick add text: "{{Title}} trended at {{Date}} with {{NumEdits}} edits by {{NumContributors}} contributors since {{TrendStart}}. See more: {{URL}}"
 - Name: Picture of the day
   Description: This trigger fires whenever a a new picture of the day is posted on Wikimedia Commons.
   Verbiage: New picture of the day
