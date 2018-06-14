@@ -9,6 +9,8 @@
 .tox
 __pycache__
 venv
+staging.cfg
+production.cfg
 ifttt.cfg
 *.log
 *.py#
