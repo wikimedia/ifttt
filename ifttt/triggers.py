@@ -308,7 +308,7 @@ class TrendingTopics(BaseTriggerView):
     """Trigger for Wikipedia trending"""
 
     url = 'https://wikipedia-trending.wmflabs.org'
-    default_fields = {'hrs': '24', 'edits': 10, 'editors': 4, 'score': 0.00001,
+    default_fields = {'hrs': '24', 'edits': 20, 'editors': 6, 'score': 0.00001,
         'title_contains': False }
     optional_fields = [ 'hrs', 'edits', 'editors', 'score', 'title_contains' ]
 
