@@ -390,7 +390,7 @@ class TrendingTopics(BaseTriggerView):
             page['score'] >= min_score and title_match
 
     def parse_result(self, page):
-        url = "https://en.wikipedia.org/wiki/%s?referrer=ifttt-trending"%page['title'].replace(' ', '_')
+        url = "https://en.wikipedia.org/wiki/%s?wprov=treni1"%page['title'].replace(' ', '_')
         updated = page['updated'][0:19] + 'Z'
         try:
             thumbUrl = page['thumbnail']['source']
